@@ -1,9 +1,0 @@
-MSYS-1.0.12 Build:2012-07-05 14:56
-Exception: STATUS_ACCESS_VIOLATION at eip=00737968
-eax=00000001 ebx=0028FC90 ecx=007B4C5C edx=002D0000 esi=00000000 edi=0028FCFE
-ebp=0028FC10 esp=0028FA98 program=C:\Users\Daniel Murray\AppData\Local\GitHub\PortableGit_7eaa994416ae7b397b2628033ac45f8ff6ac2010\bin\ssh-agent.exe
-cs=0023 ds=002B es=002B fs=0053 gs=002B ss=002B
-Stack trace:
-Frame     Function  Args
-0028FC10  00737968  (007A1A68, 0028FC6C, 0079530B, 007A1020)
-End of stack trace
