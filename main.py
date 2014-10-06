@@ -1,7 +1,9 @@
 #stage1: IMPORT LIBRARY
 import pandas.io.data as pdio
+import matplotlib.pyplot as plt
 from mahalanobis_distance import MahalanobisDist   #import Kritzman and Li - 2010 - Skulls, Financial Turbulence, and Risk Management
 from correlation_surprise import Correlation_Surprise  # import Kinlaw and Turkington - 2012 - Correlation Surprise
+
 
 #stage2: IMPORT DATA WITH ANY NUMBER OF PORTFOLIOS
 
@@ -30,11 +32,27 @@ symbols = ['FTSEMIB.MI','^IXIC','RTS.RS','^AORD','^BSESN','^BVSP','^FCHI','^FTSE
 
 stock_data = pdio.get_data_yahoo(symbols,start='1/1/2000',end='1/10/2014') # Download data from YAHOO as a pandas Panel object
 
-#stage3: Import Systemic Risk Measures
-MahalanobisDist(stock_data)
+# Convert data frame prices into returns data
+adj_close = stock_data['Adj Close'] # Scrape adjusted closing prices as pandas DataFrane object
+returns = np.log(adj_close/adj_close.shift(1)) # Continuously compounded returns
 
-Correlation_Surprise(stock_data)
+# Calculate systemic risk measures
+SRM_mahalanobis = srm.mahalanobis_distance(returns)
+SRM_correlationsurprise = srm.correlationsurprise(returns)
+SRM_absorptionratio = srm.absorptionratio(returns)
 
+systemicRiskMeasure = [SRM_mahalanobis SRM_correlationsurprise SRM_absorptionratio]   # group systemic risk measures
+
+for sysRiskMeasure in systemicRiskMeasure
+	fig = print_systemic_Risk(systemicRiskMeasure[sysRiskMeasure])
+	fig.savefig("{}.jpg".format(sysRiskMeasure))
+
+# Plotting the systemic risk measures
+
+def print_systemicRiskMeasure:
+	SRM_mahalanobis.plot()               #Plot MD
+	plt.ylabel('Index')
+	plt.xlabel('Year')
 
 
 
