@@ -1,6 +1,6 @@
 #stage1: IMPORT LIBRARY
 import pandas.io.data as pdio      #import pandas.io.data library
-import SystemicRiskMeasures as srm #import Systemic Risk Measures library
+import systemicRiskMeasures as srm #import Systemic Risk Measures library
 import matplotlib.pyplot as plt
 #stage2: IMPORT DATA WITH ANY NUMBER OF PORTFOLIOS 
 
@@ -30,7 +30,7 @@ symbols = ['FTSEMIB.MI','RTS.RS','^AORD','^BSESN','^BVSP','^FCHI','^FTSE','^GDAX
 
 #stage3: DOWNLOAD DATA AND CALCULATE RETURN VALUES
 
-Historical_Prices = pdio.get_data_yahoo(symbols,start='1/1/2007',end='1/10/2009') # Download data from YAHOO as a pandas Panel object
+Historical_Prices = pdio.get_data_yahoo(symbols,start='1/1/1980',end='1/10/2009') # Download data from YAHOO as a pandas Panel object
 Adjusted_Close_Prices = Historical_Prices['Adj Close'].dropna()  # Scrape adjusted closing prices as pandas DataFrane object while also removing all Nan data
 returns = np.log(Adjusted_Close_Prices/Adjusted_Close_Prices.shift(1)).dropna()  # Continuously compounded returns while also removing top row of Nan data
 
@@ -42,6 +42,7 @@ SRM_absorptionratio= srm.Absorption_Ratio(returns)#define Absorption Ratio
 
 systemicRiskMeasure= [SRM_mahalanobis,SRM_correlationsurprise,SRM_absorptionratio]
 
+#not sure what the below code does or how to set it up?
 #for sysRiskMeasure in systemicRiskMeasure:
    # fig= print_systemic_Risk(systemicRiskMeasure[sysRiskMeasure])
    # fig.savefig("{}.jpg".format(sysRiskMeasure))
@@ -51,18 +52,21 @@ systemicRiskMeasure= [SRM_mahalanobis,SRM_correlationsurprise,SRM_absorptionrati
 plt.xticks(rotation=50)
 plt.xlabel('Year')
 plt.ylabel('Index')
+plt.suptitle('Historical Turbulence Index Calculated from Daily Retuns of G20 Countries')
 plt.bar(SRM_mahalanobis.index,SRM_mahalanobis.values, width=2)
+plt.show()
 
 #Plot Correlation_surprise
 Correlation_Surprise= SRM_correlationsurprise[0]
 Turbulence_Score= SRM_correlationsurprise[1]
-plt.xlabel('Turbulence Score')
+plt.xlabel('Magnitude Surprise')
 plt.ylabel('CorrelationSurprise')
+plt.suptitle('Daily correlation surprise(vertical axis) versus magnitude surprise(horitonal axis)')
 plt.ylim([0,1.1])
 plt.xlim([0,1.1])
 plt.scatter(Turbulence_Score,Correlation_Surprise)      #Plot SRM_correlationsurprise
 
-
+#not sure how to generate daily data for Absorption Ratio
 
 
 #systemicRiskMeasure = [SRM_mahalanobis, SRM_correlationsurprise] # group systemic risk measures
