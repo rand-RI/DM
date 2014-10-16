@@ -2,7 +2,7 @@
 import pandas.io.data as pdio      #import pandas.io.data library
 import SystemicRiskMeasures as srm #import Systemic Risk Measures library
 import matplotlib.pyplot as plt
-#stage2: IMPORT DATA WITH ANY NUMBER OF PORTFOLIOS
+#stage2: IMPORT DATA WITH ANY NUMBER OF PORTFOLIOS sde
 
           #Must arrange tickers in alphabetical order
 symbols = ['FTSEMIB.MI','RTS.RS','^AORD','^BSESN','^BVSP','^FCHI','^FTSE','^GDAXI','^GSPTSE','^IXIC','^JKSE','^KS11','^MERV','^MXX','^N225','^SSEC'] # List all stock symbols to download in alphabetical order
