@@ -45,7 +45,7 @@ systemicRiskMeasure= [SRM_mahalanobis,SRM_correlationsurprise,SRM_absorptionrati
 #not sure what the below code does or how to set it up?
 #for sysRiskMeasure in systemicRiskMeasure:
    # fig= print_systemic_Risk(systemicRiskMeasure[sysRiskMeasure])
-   # fig.savefig("{}.jpg".format(sysRiskMeasure))
+    # fig.savefig("{}.jpg".format(sysRiskMeasure))
     
     
 #Plot SRM_mahalanobis

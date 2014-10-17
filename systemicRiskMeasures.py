@@ -76,6 +76,7 @@ def Correlation_Surprise(returns):
     MS_Max= MS.max()#calculate maximum value of Turbulence Score data            
     MS_Standardised= MS.divide(MS_Max)#standardise data by dividing by maximum value
     
+    
         #step3:CALCULATE CORRELATION SURPRISE
     #stage1: CALCULATE CORRELATION SURPRISE
     Correlation_Surprise= TS.divide(MS)
