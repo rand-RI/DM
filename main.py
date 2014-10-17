@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 #stage2: IMPORT DATA WITH ANY NUMBER OF PORTFOLIOS 
 
           #Must arrange tickers in alphabetical order
-symbols = ['FTSEMIB.MI','RTS.RS','^AORD','^BSESN','^BVSP','^FCHI','^FTSE','^GDAXI','^GSPTSE','^IXIC','^JKSE','^KS11','^MERV','^MXX','^N225','^SSEC'] # List all stock symbols to download in alphabetical order
+symbols = ['EZA','FTSEMIB.MI','RTS.RS','^AORD','^ATX','^BFX','^BSESN','^BVSP','^FCHI','^FTSE','^GDAXI','^GSPTSE','^IXIC','^JKSE','^KS11','^MERV','^MXX','^N225','^OSEAX,'^SSEC'] # List all stock symbols to download in alphabetical order
 #G20 MEMBERS#
 #Argentina:^MERV is considered the most important index of Argentina's primary stock exchange "Buenos Aires Stock Exchange"
 #Austrlaia: ^AORD is considered the oldest index of shares in Australia
@@ -22,11 +22,23 @@ symbols = ['FTSEMIB.MI','RTS.RS','^AORD','^BSESN','^BVSP','^FCHI','^FTSE','^GDAX
 #Mexico:^MXX
 #Russia: RTS.RS
 #Saudi Arabia: ...
-#South Africa:...
-#Turkey:...
+#South Africa: EZA
+#Turkey:
 #United Kingdom: ^FTSE
 #United States of America:'^IXIC'
-#the European Union: need to collect all countries?
+#the European Union: 
+#^ATX
+#^BFX
+#^FCHI
+#^GDAXI
+#^OSEAX
+#^MIBTEL
+#^OMXSPI
+#^SSMI
+#
+#
+#
+#
 
 #stage3: DOWNLOAD DATA AND CALCULATE RETURN VALUES
 
