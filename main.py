@@ -52,7 +52,7 @@ SRM_mahalanobis= srm.MahalanobisDist(returns)       #define Mahalanobis Distance
 SRM_correlationsurprise= srm.Correlation_Surprise(returns)#define Correlation Surprise Score
 SRM_absorptionratio= srm.Absorption_Ratio(returns)#define Absorption Ratio
 
-systemicRiskMeasure= [SRM_mahalanobis,SRM_correlationsurprise,SRM_absorptionratio]
+systemicRiskMeasure= [SRM_mahalanobis,SRM_correlationsurprise,SRM_absorptionratio] # group systemic risk measures
 
 #not sure what the below code does or how to set it up?
 #for sysRiskMeasure in systemicRiskMeasure:
@@ -79,11 +79,3 @@ plt.xlim([0,1.1])
 plt.scatter(Turbulence_Score,Correlation_Surprise)      #Plot SRM_correlationsurprise
 
 #not sure how to generate daily data for Absorption Ratio
-
-
-#systemicRiskMeasure = [SRM_mahalanobis, SRM_correlationsurprise] # group systemic risk measures
-
-#what I need to do is finish AB
-#plot graphs using the SRM command from the github references
-#remove TB from Correlation Surprise and just use MD
-
