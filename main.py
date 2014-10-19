@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 #stage2: IMPORT DATA WITH ANY NUMBER OF PORTFOLIOS 
 
           #Must arrange tickers in alphabetical order
-symbols = ['EZA','FTSEMIB.MI','RTS.RS','^AORD','^ATX','^BFX','^BSESN','^BVSP','^FCHI','^FTSE','^GDAXI','^GSPTSE','^IXIC','^JKSE','^KS11','^MERV','^MXX','^N225','^OSEAX,'^SSEC'] # List all stock symbols to download in alphabetical order
+symbols = ['EZA','FTSEMIB.MI','RTS.RS','^AORD','^ATX','^BFX','^BSESN','^BVSP','^FCHI','^FTSE','^GDAXI','^GSPTSE','^IXIC','^JKSE','^KS11','^MERV','^MXX','^N225','^SSEC'] # List all stock symbols to download in alphabetical order
 #G20 MEMBERS#
 #Argentina:^MERV is considered the most important index of Argentina's primary stock exchange "Buenos Aires Stock Exchange"
 #Austrlaia: ^AORD is considered the oldest index of shares in Australia
@@ -31,8 +31,8 @@ symbols = ['EZA','FTSEMIB.MI','RTS.RS','^AORD','^ATX','^BFX','^BSESN','^BVSP','^
 #^BFX
 #^FCHI
 #^GDAXI
-#^OSEAX
-#^MIBTEL
+#
+#
 #^OMXSPI
 #^SSMI
 #
@@ -73,7 +73,7 @@ Correlation_Surprise= SRM_correlationsurprise[0]
 Turbulence_Score= SRM_correlationsurprise[1]
 plt.xlabel('Magnitude Surprise')
 plt.ylabel('CorrelationSurprise')
-plt.suptitle('Daily correlation surprise(vertical axis) versus magnitude surprise(horitonal axis)')
+plt.suptitle('Daily correlation surprise versus magnitude surprise')
 plt.ylim([0,1.1])
 plt.xlim([0,1.1])
 plt.scatter(Turbulence_Score,Correlation_Surprise)      #Plot SRM_correlationsurprise
