@@ -13,32 +13,26 @@ symbols = ['EZA','FTSEMIB.MI','RTS.RS','^AORD','^ATX','^BFX','^BSESN','^BVSP','^
 #Canada:^GSPTSE is an index of the stock (equity) prices of the largest companies on the Toronto Stock Exchange in Canada
 #China: ^SSEC represents all stocks that are traded on the Shanghai Stock Exchange
 #France: ^FCHI is considered a benchmark French Stock Market index
-#Germany: ^GDAXI
-#India:^BSESN
-#Indonesia:^JKSE
-#Italy:FTSEMIB.MI
-#Japan:^N225
-#Republic of Korea: ^KS11
-#Mexico:^MXX
+#Germany: ^GDAXI is a  blue chip stock market index consisting of the 30 major German companies trading on the Frankfurt Stock Exchange.
+#India:^BSESN SENSEX, is a free-float market-weighted stock market index of 30 well-established and financially sound companies listed on Bombay Stock Exchange.
+#Indonesia:^JKSE  is an index of all stocks that trade on the Indonesia Stock Exchange
+#Italy:FTSEMIB.MI  is the benchmark stock market index for the Borsa Italiana, the Italian national stock exchange
+#Japan:^N225  is a stock market index for the Tokyo Stock Exchange (TSE). Currently, the Nikkei is the most widely quoted average of Japanese equities
+#Republic of Korea: ^KS11 s the index of all common stocks traded on the Stock Market Division of the Korea Exchange
+#Mexico:^MXX  The main benchmark stock index for the Mexican Stock Exchange is called the IPC
 #Russia: RTS.RS
 #Saudi Arabia: ...
 #South Africa: EZA
 #Turkey:
-#United Kingdom: ^FTSE
-#United States of America:'^IXIC'
+#United Kingdom: ^FTSE  is a share index of the 100 companies listed on the London Stock Exchange with the highest market capitalization
+#United States of America:'^IXIC'  is a stock market index of the common stocks and similar securities listed on the NASDAQ stock market
 #the European Union: 
 #^ATX
 #^BFX
 #^FCHI
 #^GDAXI
-#
-#
 #^OMXSPI
 #^SSMI
-#
-#
-#
-#
 
 #stage3: DOWNLOAD DATA AND CALCULATE RETURN VALUES
 
