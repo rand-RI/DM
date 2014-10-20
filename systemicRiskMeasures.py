@@ -94,6 +94,7 @@ def Absorption_Ratio(returns):
     #stage1: IMPORT LIBRARIES    
     import pandas as pd  #import pandas    
     import numpy as np #import numpys  
+    import math as mth
     
     #stage2: CALCULATE COVARIANCE MATRIX
     return_covariance= returns.cov() #Generate Covariance Matrix
@@ -105,7 +106,9 @@ def Absorption_Ratio(returns):
     ev_values_sort_high_to_low = ev_values.argsort()[::-1]                         
     ev_values_sort=ev_values[ev_values_sort_high_to_low] #sort eigenvalues from highest to lowest
     ev_vectors_sorted= ev_vector[:,ev_values_sort_high_to_low] #sort eigenvectors corresponding to sorted eigenvalues
-    
+    shape= ev_vectors_sorted.shape[0]
+    round_down_shape= mth.floor(shape*0.2)
+    ev_vectors= ev_vectors_sorted[:,0:round_down_shape]
     
     #stage5: CALCULATE ABSORPTION RATIO DATA
     variance_of_ith_eigenvector= ev_vectors_sorted.diagonal()#fetch variance of ith eigenvector
@@ -118,3 +121,25 @@ def Absorption_Ratio(returns):
     
     return Absorption_Ratio #return Absorption_Ratio
 
+#Plotting Systemic Risk Measures
+def print_systemic_Risk(systemicRiskMeasure):
+    
+   import matplotlib.pyplot as plt
+    
+   #if statement? 
+   #1 MahalanobisDistance
+   plt.xticks(rotation=50)  #rotate x axis labels 50 degrees
+   plt.xlabel('Year')#label x axis Year
+   plt.ylabel('Index')#label y axis Index
+   plt.suptitle('Historical Turbulence Index Calculated from Daily Retuns of G20 Countries')#label title of graph Historical Turbulence Index Calculated from Daily Retuns of G20 Countries
+   plt.bar(systemicRiskMeasure[0].index,systemicRiskMeasure[0].values, width=2)#graph bar chart of Mahalanobis Distance
+       
+    #2Correlation Surprise
+   Correlation_Surprise= systemicRiskMeasure[1][0] #gather Correlation surprise array
+   Magnitude_Surprise= systemicRiskMeasure[1][1]#gather turbulence score array
+   plt.xlabel('Magnitude Surprise')#label x axis Magnitude Surprise
+   plt.ylabel('CorrelationSurprise')#label y axis Correlation Surprise
+   plt.suptitle('Daily correlation surprise versus magnitude surprise')#label title of graph 'Daily correlation surprise versus magnitude surprise'
+   plt.ylim([0,1.1]) #allow y axis range from 0-1.1
+   plt.xlim([0,1.1])#allow x axis range from 0-1.1
+   plt.scatter(Magnitude_Surprise,Correlation_Surprise) #graph scatter plot of magnitude surprise vs Correlation Surprise

@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 
           #Must arrange tickers in alphabetical order
 symbols = ['EZA','FTSEMIB.MI','RTS.RS','^AORD','^ATX','^BFX','^BSESN','^BVSP','^FCHI','^FTSE','^GDAXI','^GSPTSE','^IXIC','^JKSE','^KS11','^MERV','^MXX','^N225','^SSEC'] # List all stock symbols to download in alphabetical order
+
 #G20 MEMBERS#
 #Argentina:^MERV is considered the most important index of Argentina's primary stock exchange "Buenos Aires Stock Exchange"
 #Austrlaia: ^AORD is considered the oldest index of shares in Australia
@@ -48,28 +49,10 @@ SRM_absorptionratio= srm.Absorption_Ratio(returns)#define Absorption Ratio
 
 systemicRiskMeasure= [SRM_mahalanobis,SRM_correlationsurprise,SRM_absorptionratio] # group systemic risk measures
 
-#not sure what the below code does or how to set it up?
 #for sysRiskMeasure in systemicRiskMeasure:
-   # fig= print_systemic_Risk(systemicRiskMeasure[sysRiskMeasure])
-    # fig.savefig("{}.jpg".format(sysRiskMeasure))
-    
-    
-#Plot SRM_mahalanobis
-plt.xticks(rotation=50)
-plt.xlabel('Year')
-plt.ylabel('Index')
-plt.suptitle('Historical Turbulence Index Calculated from Daily Retuns of G20 Countries')
-plt.bar(SRM_mahalanobis.index,SRM_mahalanobis.values, width=2)
-plt.show()
+   #fig= print_systemic_Risk(systemicRiskMeasure[sysRiskMeasure])
+   #fig.savefig("{}.jpg".format(sysRiskMeasure))
 
-#Plot Correlation_surprise
-Correlation_Surprise= SRM_correlationsurprise[0]
-Turbulence_Score= SRM_correlationsurprise[1]
-plt.xlabel('Magnitude Surprise')
-plt.ylabel('CorrelationSurprise')
-plt.suptitle('Daily correlation surprise versus magnitude surprise')
-plt.ylim([0,1.1])
-plt.xlim([0,1.1])
-plt.scatter(Turbulence_Score,Correlation_Surprise)      #Plot SRM_correlationsurprise
+srm.print_systemic_Risk(systemicRiskMeasure)
+         
 
-#not sure how to generate daily data for Absorption Ratio
