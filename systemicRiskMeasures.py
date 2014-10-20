@@ -106,20 +106,25 @@ def Absorption_Ratio(returns):
     ev_values_sort_high_to_low = ev_values.argsort()[::-1]                         
     ev_values_sort=ev_values[ev_values_sort_high_to_low] #sort eigenvalues from highest to lowest
     ev_vectors_sorted= ev_vector[:,ev_values_sort_high_to_low] #sort eigenvectors corresponding to sorted eigenvalues
-    shape= ev_vectors_sorted.shape[0]
-    round_down_shape= mth.floor(shape*0.2)
-    ev_vectors= ev_vectors_sorted[:,0:round_down_shape]
     
-    #stage5: CALCULATE ABSORPTION RATIO DATA
-    variance_of_ith_eigenvector= ev_vectors_sorted.diagonal()#fetch variance of ith eigenvector
+    #Stage5: COLLECT 1/5 OF EIGENVALUES
+    shape= ev_vectors_sorted.shape[0] #collect shape of ev_vector matrix
+    round_down_shape= mth.floor(shape*0.2) #round shape to lowest integer
+    ev_vectors= ev_vectors_sorted[:,0:round_down_shape] #collect 1/5th the number of assets in sample
+    
+    #stage6: CALCULATE ABSORPTION RATIO DATA
+    variance_of_ith_eigenvector= ev_vectors.diagonal()#fetch variance of ith eigenvector
     variance_of_jth_asset= np.array(returns).diagonal() #fetch variance of jth asset
     
-    #stage6: CONSTRUCT ABSORPTION RATIO FORMULA     
+    #stage7: CONSTRUCT ABSORPTION RATIO FORMULA     
     numerator= variance_of_ith_eigenvector.sum() #calculate the sum to n of variance of ith eigenvector
     denominator= variance_of_jth_asset.sum()#calculate the sum to n of variance of jth asset
     Absorption_Ratio= numerator/denominator#calculate Absorption ratio
     
     return Absorption_Ratio #return Absorption_Ratio
+    
+    #to calculate the EWMA use pd.EWMA(data, span=500)
+    
 
 #Plotting Systemic Risk Measures
 def print_systemic_Risk(systemicRiskMeasure):
@@ -133,7 +138,7 @@ def print_systemic_Risk(systemicRiskMeasure):
    plt.ylabel('Index')#label y axis Index
    plt.suptitle('Historical Turbulence Index Calculated from Daily Retuns of G20 Countries')#label title of graph Historical Turbulence Index Calculated from Daily Retuns of G20 Countries
    plt.bar(systemicRiskMeasure[0].index,systemicRiskMeasure[0].values, width=2)#graph bar chart of Mahalanobis Distance
-       
+   plt.show()    
     #2Correlation Surprise
    Correlation_Surprise= systemicRiskMeasure[1][0] #gather Correlation surprise array
    Magnitude_Surprise= systemicRiskMeasure[1][1]#gather turbulence score array
@@ -143,3 +148,4 @@ def print_systemic_Risk(systemicRiskMeasure):
    plt.ylim([0,1.1]) #allow y axis range from 0-1.1
    plt.xlim([0,1.1])#allow x axis range from 0-1.1
    plt.scatter(Magnitude_Surprise,Correlation_Surprise) #graph scatter plot of magnitude surprise vs Correlation Surprise
+   plt.show()
