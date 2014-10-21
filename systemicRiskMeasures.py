@@ -96,34 +96,47 @@ def Absorption_Ratio(returns):
     import numpy as np #import numpys  
     import math as mth
     
+    x=returns.count(axis=0)[0]-500
+    i=0
+    plot_data=[]
+
+    i=0
+    while (i<x):    
+        
+        EWMA_returns=pd.ewma(returns, span=500)
+        itt_return= EWMA_returns[i:i+500]
+        
+        return_covariance= itt_return.cov()
     #stage2: CALCULATE COVARIANCE MATRIX
-    return_covariance= returns.cov() #Generate Covariance Matrix
+       # return_covariance= returns.cov() #Generate Covariance Matrix
     
     #stage3: CALCULATE EIGENVECTORS AND EIGENVALUES
-    ev_values,ev_vector= np.linalg.eig(return_covariance) #generate eigenvalues and vectors 
+        ev_values,ev_vector= np.linalg.eig(return_covariance) #generate eigenvalues and vectors 
     
     #Stage4: SORT EIGENVECTORS RESPECTIVE TO THEIR EIGENVALUES
-    ev_values_sort_high_to_low = ev_values.argsort()[::-1]                         
-    ev_values_sort=ev_values[ev_values_sort_high_to_low] #sort eigenvalues from highest to lowest
-    ev_vectors_sorted= ev_vector[:,ev_values_sort_high_to_low] #sort eigenvectors corresponding to sorted eigenvalues
+        ev_values_sort_high_to_low = ev_values.argsort()[::-1]                         
+        ev_values_sort=ev_values[ev_values_sort_high_to_low] #sort eigenvalues from highest to lowest
+        ev_vectors_sorted= ev_vector[:,ev_values_sort_high_to_low] #sort eigenvectors corresponding to sorted eigenvalues
     
     #Stage5: COLLECT 1/5 OF EIGENVALUES
-    shape= ev_vectors_sorted.shape[0] #collect shape of ev_vector matrix
-    round_down_shape= mth.floor(shape*0.2) #round shape to lowest integer
-    ev_vectors= ev_vectors_sorted[:,0:round_down_shape] #collect 1/5th the number of assets in sample
+        shape= ev_vectors_sorted.shape[0] #collect shape of ev_vector matrix
+        round_down_shape= mth.floor(shape*0.2) #round shape to lowest integer
+        ev_vectors= ev_vectors_sorted[:,0:round_down_shape] #collect 1/5th the number of assets in sample
     
     #stage6: CALCULATE ABSORPTION RATIO DATA
-    variance_of_ith_eigenvector= ev_vectors.diagonal()#fetch variance of ith eigenvector
-    variance_of_jth_asset= np.array(returns).diagonal() #fetch variance of jth asset
+        variance_of_ith_eigenvector= ev_vectors.diagonal()#fetch variance of ith eigenvector
+        variance_of_jth_asset= np.array(returns).diagonal() #fetch variance of jth asset
     
     #stage7: CONSTRUCT ABSORPTION RATIO FORMULA     
-    numerator= variance_of_ith_eigenvector.sum() #calculate the sum to n of variance of ith eigenvector
-    denominator= variance_of_jth_asset.sum()#calculate the sum to n of variance of jth asset
-    Absorption_Ratio= numerator/denominator#calculate Absorption ratio
+        numerator= variance_of_ith_eigenvector.sum() #calculate the sum to n of variance of ith eigenvector
+        denominator= variance_of_jth_asset.sum()#calculate the sum to n of variance of jth asset
+        Absorption_Ratio= numerator/denominator#calculate Absorption ratio
     
-    return Absorption_Ratio #return Absorption_Ratio
+        return Absorption_Ratio #return Absorption_Ratio
     
     #to calculate the EWMA use pd.EWMA(data, span=500)
+    
+    
     
 
 #Plotting Systemic Risk Measures
