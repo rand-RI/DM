@@ -50,18 +50,10 @@ SRM_absorptionratio= srm.Absorption_Ratio(returns)#define Absorption Ratio
 systemicRiskMeasure= [SRM_mahalanobis,SRM_correlationsurprise,SRM_absorptionratio] # group systemic risk measures
 
 #for sysRiskMeasure in systemicRiskMeasure:
- #  fig= print_systemic_Risk(systemicRiskMeasure[sysRiskMeasure])
-  # fig.savefig("{}.jpg".format(sysRiskMeasure))
+#    fig= print_systemic_Risk(systemicRiskMeasure[sysRiskMeasure])
+#    fig.savefig("{}.jpg".format(sysRiskMeasure))
 
 srm.print_systemic_Risk(systemicRiskMeasure)
-         
-
-
-
-
-
-#print AR ratio trail
-
 
 
 

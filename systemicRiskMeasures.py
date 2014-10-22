@@ -97,18 +97,17 @@ def Absorption_Ratio(returns):
     import math as mth
     
     x=returns.count(axis=0)[0]-500
-    i=0
+    
     plot_data=[]
-
     i=0
     while (i<x):    
         
-        EWMA_returns=pd.ewma(returns, span=500)
-        itt_return= EWMA_returns[i:i+500]
+    #stage1: CALCULATE EXPONENTIAL WEIGHTING
+        EWMA_returns=pd.ewma(returns, span=500) #convert returns into Exponential weighting over a window of 500 days
+        trailing_return= EWMA_returns[i:i+500] #create iteration to trail 500 day periods 
         
-        return_covariance= itt_return.cov()
-    #stage2: CALCULATE COVARIANCE MATRIX
-       # return_covariance= returns.cov() #Generate Covariance Matrix
+   #stage2: CALCULATE COVARIANCE MATRIX
+        return_covariance= trailing_return.cov() #Generate Covariance Matrix
     
     #stage3: CALCULATE EIGENVECTORS AND EIGENVALUES
         ev_values,ev_vector= np.linalg.eig(return_covariance) #generate eigenvalues and vectors 
@@ -120,22 +119,31 @@ def Absorption_Ratio(returns):
     
     #Stage5: COLLECT 1/5 OF EIGENVALUES
         shape= ev_vectors_sorted.shape[0] #collect shape of ev_vector matrix
-        round_down_shape= mth.floor(shape*0.2) #round shape to lowest integer
-        ev_vectors= ev_vectors_sorted[:,0:round_down_shape] #collect 1/5th the number of assets in sample
+        round_up_shape= mth.ceil(shape*0.2) #round shape to lowest integer
+        ev_vectors= ev_vectors_sorted[:,0:round_up_shape] #collect 1/5th the number of assets in sample
     
     #stage6: CALCULATE ABSORPTION RATIO DATA
         variance_of_ith_eigenvector= ev_vectors.diagonal()#fetch variance of ith eigenvector
-        variance_of_jth_asset= np.array(returns).diagonal() #fetch variance of jth asset
+        variance_of_jth_asset= np.array(EWMA_returns).diagonal() #fetch variance of jth asset
     
     #stage7: CONSTRUCT ABSORPTION RATIO FORMULA     
         numerator= variance_of_ith_eigenvector.sum() #calculate the sum to n of variance of ith eigenvector
+        absol_numerator= mth.fabs(numerator) #convert to absoluate values
         denominator= variance_of_jth_asset.sum()#calculate the sum to n of variance of jth asset
-        Absorption_Ratio= numerator/denominator#calculate Absorption ratio
+        absol_denominator= mth.fabs(denominator)#convert to absoluate values
+       
+        Absorption_Ratio= absol_numerator/absol_denominator#calculate Absorption ratio
     
-        return Absorption_Ratio #return Absorption_Ratio
+    #stage8: Append Data
+        plot_data.append(Absorption_Ratio) #Append Absorption Ratio iterations into plot_data list
+        i=i+1 #allow iteration to increase in intervals of 1
     
-    #to calculate the EWMA use pd.EWMA(data, span=500)
-    
+    #stage9: Plot Data
+    plot_array= np.array(plot_data)#convert plot_data into array
+    dates= returns[0:x].index#gather dates index
+    Absorption_Ratio=pd.DataFrame(plot_array,index=dates,columns=list('R'))#merge dates and Absorption ratio returns
+        
+    return  Absorption_Ratio #print Absorption Ratio
     
     
 
@@ -162,3 +170,12 @@ def print_systemic_Risk(systemicRiskMeasure):
    plt.xlim([0,1.1])#allow x axis range from 0-1.1
    plt.scatter(Magnitude_Surprise,Correlation_Surprise) #graph scatter plot of magnitude surprise vs Correlation Surprise
    plt.show()
+   
+   #3Absorption Ratio
+   plt.xticks(rotation=50)  #rotate x axis labels 50 degrees
+   plt.xlabel('Year')#label x axis Year
+   plt.ylabel('Index')#label y axis Index
+   plt.suptitle('Absorption Ratio')#label title of graph Absorption Ratio
+   plt.plot(systemicRiskMeasure[2].index,systemicRiskMeasure[2].values)#graph line chart of Absorption Ratio
+   plt.show()
+   
