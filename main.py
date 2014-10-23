@@ -37,20 +37,25 @@ symbols = ['EZA','FTSEMIB.MI','RTS.RS','^AORD','^ATX','^BFX','^BSESN','^BVSP','^
 
 #stage3: DOWNLOAD DATA AND CALCULATE RETURN VALUES
 
-Historical_Prices = pdio.get_data_yahoo(symbols,start='1/1/1980',end='1/10/2009') # Download data from YAHOO as a pandas Panel object
+Historical_Prices = pdio.get_data_yahoo(symbols,start='1/1/1980',end='1/10/2014') # Download data from YAHOO as a pandas Panel object
 Adjusted_Close_Prices = Historical_Prices['Adj Close'].dropna()  # Scrape adjusted closing prices as pandas DataFrane object while also removing all Nan data
 returns = np.log(Adjusted_Close_Prices/Adjusted_Close_Prices.shift(1)).dropna()  # Continuously compounded returns while also removing top row of Nan data
+monthly_returns=returns.resample('BM',how=lambda x: x[-1])
+
+#find monthly returns
+
 
 
 #stage4: Import Systemic Risk Measures
-SRM_mahalanobis= srm.MahalanobisDist(returns)       #define Mahalanobis Distance Formula
-SRM_correlationsurprise= srm.Correlation_Surprise(returns)#define Correlation Surprise Score
+SRM_mahalanobis= srm.MahalanobisDist(monthly_returns)       #define Mahalanobis Distance Formula
+SRM_correlationsurprise= srm.Correlation_Surprise(monthly_returns)#define Correlation Surprise Score
 SRM_absorptionratio= srm.Absorption_Ratio(returns)#define Absorption Ratio
 
 systemicRiskMeasure= [SRM_mahalanobis,SRM_correlationsurprise,SRM_absorptionratio] # group systemic risk measures
 
+#sysRiskMeasure=0
 #for sysRiskMeasure in systemicRiskMeasure:
-#    fig= print_systemic_Risk(systemicRiskMeasure[sysRiskMeasure])
+#    fig= srm.print_systemic_Risk(systemicRiskMeasure[sysRiskMeasure])
 #    fig.savefig("{}.jpg".format(sysRiskMeasure))
 
 srm.print_systemic_Risk(systemicRiskMeasure)

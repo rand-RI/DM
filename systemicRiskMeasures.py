@@ -1,19 +1,20 @@
 ##Systemic Risk Measures##
 
 #Journal Article: Kritzman and Li - 2010 - Skulls, Financial Turbulence, and Risk Management
-def MahalanobisDist(returns):#define MahalanobisDistance function
+def MahalanobisDist(monthly_returns):#define MahalanobisDistance function
     
     #stage1: IMPORT LIBRARIES
     import pandas as pd#import pandas    
     import numpy as np#import numpy
     
+    
     #stage2: CALCULATE COVARIANCE MATRIX
-    return_covariance= returns.cov() #Generate Covariance Matrix for historical returns
+    return_covariance= monthly_returns.cov() #Generate Covariance Matrix for historical returns
     return_inverse= np.linalg.inv(return_covariance) #Generate Inverse Matrix for historical returns
 
     #stage3: CALCULATE THE DIFFERENCE BETWEEN THE MEAN AND HISTORICAL DATA FOR EACH INDEX
-    means= returns.mean()#Calculate historical returns means for each asset
-    diff_means= returns.subtract(means) #Calculate difference between historical return means and the historical returns
+    means= monthly_returns.mean()#Calculate historical returns means for each asset
+    diff_means= monthly_returns.subtract(means) #Calculate difference between historical return means and the historical returns
 
     #stage4: SPLIT VALUES FROM INDEX DATES
     values=diff_means.values #Split historical returns from Dataframe
@@ -23,15 +24,16 @@ def MahalanobisDist(returns):#define MahalanobisDistance function
     md = [] #Define Mahalanobis Distance as md
     for i in range(len(values)):
         md.append((np.dot(np.dot(np.transpose(values[i]),return_inverse),values[i])))  #Construct Mahalanobis Distance formula
-
+        
     #stage6: CONVERT LIST Type TO DATAFRAME Type
     md_array= np.array(md) #Translate md List type to md Numpy type
     MD=pd.DataFrame(md_array,index=dates,columns=list('R')) #Join Dataframe and Numpy array back together
     
     return MD #return Mahalanobis Distance data
     
+    
 #Journal Article: Kinlaw and Turkington - 2012 - Correlation Surprise
-def Correlation_Surprise(returns):
+def Correlation_Surprise(monthly_returns):
     
     #Stage1: IMPORT LIBRARIES
     import pandas as pd#import pandas 
@@ -40,18 +42,18 @@ def Correlation_Surprise(returns):
          #Step1: CALCULATE TURBULENCE SCORE 
      
     #Stage 1: GENERATE TURBULENCE SCORE
-    TS= MahalanobisDist(returns)#calculate Turbulence Score from Mahalanobis Distance Function
+    TS= MahalanobisDist(monthly_returns)#calculate Turbulence Score from Mahalanobis Distance Function
     
     
          #Step2: CALCULATE MAGNITUDE SURPRISE   
     
     #Stage1: CALCULATE COVARIANCE MATRIX
-    return_covariance= returns.cov() #Generate Covariance Matrix for hisotircal returns
-    return_inverse= np.linalg.inv(returns.cov()) #Generate Inverse Matrix for historical returns
+    return_covariance= monthly_returns.cov() #Generate Covariance Matrix for hisotircal returns
+    return_inverse= np.linalg.inv(return_covariance) #Generate Inverse Matrix for historical returns
     
     #stage2: CALCULATE THE DIFFERENCE BETWEEN THE MEAN AND HISTORICAL DATA FOR EACH INDEX
-    means= returns.mean() #Calculate historical returns means
-    diff_means= returns.subtract(means) #Calculate difference between historical return means and the historical returns
+    means= monthly_returns.mean() #Calculate historical returns means
+    diff_means= monthly_returns.subtract(means) #Calculate difference between historical return means and the historical returns
     
     #stage3: SPLIT VALUES FROM INDEX DATES
     values=diff_means.values #Split historical returns data from Dataframe
@@ -72,22 +74,16 @@ def Correlation_Surprise(returns):
     ms_array= np.array(ms)  #Translate ms List type to ts Numpy type
     MS=pd.DataFrame(ms_array,index=dates,columns=list('R')) #Join Dataframe and Numpy array back together
     
-    #stage7: STANDARDISE MS
-    MS_Max= MS.max()#calculate maximum value of Turbulence Score data            
-    MS_Standardised= MS.divide(MS_Max)#standardise data by dividing by maximum value
-    
-    
+        
         #step3:CALCULATE CORRELATION SURPRISE
     #stage1: CALCULATE CORRELATION SURPRISE
     Correlation_Surprise= TS.divide(MS)
     
-    #Stage 2: STANDARDISE CORRELATION SURPRISE
-    Correlation_Surprise_Max= Correlation_Surprise.max()#calculate maximum value of Correlation Surprise    
-    Correlation_Surprise_Standardised= Correlation_Surprise.divide(Correlation_Surprise_Max) #standardise data by dividing by maximum value
-   
-   
-    return  Correlation_Surprise_Standardised, MS_Standardised #return standardised Correlation Surprise and Magnitude Surprise
+    return  Correlation_Surprise, MS #return standardised Correlation Surprise and Magnitude Surprise
     
+
+
+
 #Journal Article: Kritzman et al. - 2011 - Principal Components as a Measure of Systemic Risk
 def Absorption_Ratio(returns):
     
@@ -163,13 +159,25 @@ def print_systemic_Risk(systemicRiskMeasure):
     #2Correlation Surprise
    Correlation_Surprise= systemicRiskMeasure[1][0] #gather Correlation surprise array
    Magnitude_Surprise= systemicRiskMeasure[1][1]#gather turbulence score array
-   plt.xlabel('Magnitude Surprise')#label x axis Magnitude Surprise
-   plt.ylabel('CorrelationSurprise')#label y axis Correlation Surprise
-   plt.suptitle('Daily correlation surprise versus magnitude surprise')#label title of graph 'Daily correlation surprise versus magnitude surprise'
-   plt.ylim([0,1.1]) #allow y axis range from 0-1.1
-   plt.xlim([0,1.1])#allow x axis range from 0-1.1
-   plt.scatter(Magnitude_Surprise,Correlation_Surprise) #graph scatter plot of magnitude surprise vs Correlation Surprise
+   
+        #Magnitude Suprise   
+   plt.xticks(rotation=50)  #rotate x axis labels 50 degrees
+   plt.xlabel('Year')#label x axis Year
+   plt.ylabel('Index')#label y axis Index
+   plt.suptitle('Magnitude Surprise Index Calculated from Monthly Retuns of G20 Countries')#label title of graph Historical Turbulence Index Calculated from Daily Retuns of G20 Countries
+   plt.bar(Magnitude_Surprise.index,Magnitude_Surprise.values, width=2)#graph bar chart of Mahalanobis Distance
    plt.show()
+   
+       #Correlation_Surprise
+   #need to find weighted averaged returns
+   plt.xticks(rotation=50)  #rotate x axis labels 50 degrees
+   plt.xlabel('Year')#label x axis Year
+   plt.ylabel('Index')#label y axis Index
+   plt.suptitle('Correlation Surprise Index Calculated from Monthly Retuns of G20 Countries')#label title of graph Historical Turbulence Index Calculated from Daily Retuns of G20 Countries
+   plt.bar(Correlation_Surprise.index,Correlation_Surprise.values, width=2)#graph bar chart of Mahalanobis Distance
+   plt.show()
+   
+   
    
    #3Absorption Ratio
    plt.xticks(rotation=50)  #rotate x axis labels 50 degrees
