@@ -37,8 +37,9 @@ symbols = ['EZA','FTSEMIB.MI','RTS.RS','^AORD','^ATX','^BFX','^BSESN','^BVSP','^
 #^SSMI
 
 #stage3: DOWNLOAD DATA AND CALCULATE RETURN VALUES
-
-Historical_Prices = pdio.get_data_yahoo(symbols,start='1/1/1980',end='1/10/2014') # Download data from YAHOO as a pandas Panel object
+Start_Date='1/1/2012'#MM,DD,YY
+End_Date='12/11/2013'#MM,DD,YY
+Historical_Prices = pdio.get_data_yahoo(symbols,start= Start_Date,end= End_Date) # Download data from YAHOO as a pandas Panel object
 Adjusted_Close_Prices = Historical_Prices['Adj Close'].dropna()  # Scrape adjusted closing prices as pandas DataFrane object while also removing all Nan data
 
 #daily returns:
@@ -53,13 +54,23 @@ yyyymm=[]
 for i in range(1,Adjusted_Close_Prices.count()[0]):
     a=d0.year[i]
     b="{0:02}".format(d0.month[i])
-     
+   
     yyyymm.append(str(int(str(a)+str(b))))
-
+        
+    
 y=pd.DataFrame(returns_array,index=yyyymm,columns=[symbols])
-monthly_returns=y.groupby(y.index).sum()
+monthly_re=y.groupby(y.index).sum()
 
-monthly_returns.index
+#Add 30 dates ahead
+Date=datetime.datetime.strptime(End_Date, "%m/%d/%Y")
+Future_Date = Date + datetime.timedelta(days=31)
+Future_Date_Read= Future_Date.strftime('%m/%d/%Y')
+
+monthly_returns= pd.DataFrame(monthly_re.values,index=pd.date_range(Start_Date,Future_Date_Read, freq='M'),columns=[symbols])
+
+
+
+
 #change monthly_returns to returns
 
 #stage4: Import Systemic Risk Measures
