@@ -2,6 +2,7 @@
 import pandas.io.data as pdio      #import pandas.io.data library
 import systemicRiskMeasures as srm #import Systemic Risk Measures library
 import matplotlib.pyplot as plt
+import pandas as pd
 #stage2: IMPORT DATA WITH ANY NUMBER OF PORTFOLIOS 
 
           #Must arrange tickers in alphabetical order
@@ -39,12 +40,27 @@ symbols = ['EZA','FTSEMIB.MI','RTS.RS','^AORD','^ATX','^BFX','^BSESN','^BVSP','^
 
 Historical_Prices = pdio.get_data_yahoo(symbols,start='1/1/1980',end='1/10/2014') # Download data from YAHOO as a pandas Panel object
 Adjusted_Close_Prices = Historical_Prices['Adj Close'].dropna()  # Scrape adjusted closing prices as pandas DataFrane object while also removing all Nan data
+
+#daily returns:
 returns = np.log(Adjusted_Close_Prices/Adjusted_Close_Prices.shift(1)).dropna()  # Continuously compounded returns while also removing top row of Nan data
-monthly_returns=returns.resample('BM',how=lambda x: x[-1])
 
-#find monthly returns
+#montly Returns:
+returns_array=returns.values #n_array
+d0=Adjusted_Close_Prices.index
 
+x=Adjusted_Close_Prices.count()[0]
+yyyymm=[]
+for i in range(1,Adjusted_Close_Prices.count()[0]):
+    a=d0.year[i]
+    b="{0:02}".format(d0.month[i])
+     
+    yyyymm.append(str(int(str(a)+str(b))))
 
+y=pd.DataFrame(returns_array,index=yyyymm,columns=[symbols])
+monthly_returns=y.groupby(y.index).sum()
+
+monthly_returns.index
+#change monthly_returns to returns
 
 #stage4: Import Systemic Risk Measures
 SRM_mahalanobis= srm.MahalanobisDist(monthly_returns)       #define Mahalanobis Distance Formula
@@ -62,3 +78,4 @@ srm.print_systemic_Risk(systemicRiskMeasure)
 
 
 
+monthly_returns.set_index(monthly_returns.index)

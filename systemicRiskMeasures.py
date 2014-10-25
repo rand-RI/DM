@@ -156,7 +156,9 @@ def print_systemic_Risk(systemicRiskMeasure):
    plt.suptitle('Historical Turbulence Index Calculated from Daily Retuns of G20 Countries')#label title of graph Historical Turbulence Index Calculated from Daily Retuns of G20 Countries
    plt.bar(systemicRiskMeasure[0].index,systemicRiskMeasure[0].values, width=2)#graph bar chart of Mahalanobis Distance
    plt.show()    
-    #2Correlation Surprise
+   
+   
+   #2Correlation Surprise
    Correlation_Surprise= systemicRiskMeasure[1][0] #gather Correlation surprise array
    Magnitude_Surprise= systemicRiskMeasure[1][1]#gather turbulence score array
    
