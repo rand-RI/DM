@@ -3,6 +3,7 @@ import pandas.io.data as pdio      #import pandas.io.data library
 import systemicRiskMeasures as srm #import Systemic Risk Measures library
 import matplotlib.pyplot as plt
 import pandas as pd
+import datetime as dt 
 #stage2: IMPORT DATA WITH ANY NUMBER OF PORTFOLIOS 
 
           #Must arrange tickers in alphabetical order
@@ -37,7 +38,7 @@ symbols = ['EZA','FTSEMIB.MI','RTS.RS','^AORD','^ATX','^BFX','^BSESN','^BVSP','^
 #^SSMI
 
 #stage3: DOWNLOAD DATA AND CALCULATE RETURN VALUES
-Start_Date='1/1/2012'#MM,DD,YY
+Start_Date='1/1/1980'#MM,DD,YY
 End_Date='12/11/2013'#MM,DD,YY
 Historical_Prices = pdio.get_data_yahoo(symbols,start= Start_Date,end= End_Date) # Download data from YAHOO as a pandas Panel object
 Adjusted_Close_Prices = Historical_Prices['Adj Close'].dropna()  # Scrape adjusted closing prices as pandas DataFrane object while also removing all Nan data
@@ -49,7 +50,7 @@ returns = np.log(Adjusted_Close_Prices/Adjusted_Close_Prices.shift(1)).dropna() 
 returns_array=returns.values #n_array
 d0=Adjusted_Close_Prices.index
 
-x=Adjusted_Close_Prices.count()[0]
+
 yyyymm=[]
 for i in range(1,Adjusted_Close_Prices.count()[0]):
     a=d0.year[i]
@@ -62,16 +63,14 @@ y=pd.DataFrame(returns_array,index=yyyymm,columns=[symbols])
 monthly_re=y.groupby(y.index).sum()
 
 #Add 30 dates ahead
-Date=datetime.datetime.strptime(End_Date, "%m/%d/%Y")
-Future_Date = Date + datetime.timedelta(days=31)
+Date=dt.datetime.strptime(End_Date, "%m/%d/%Y")
+Future_Date = Date + dt.timedelta(days=31)
 Future_Date_Read= Future_Date.strftime('%m/%d/%Y')
 
-monthly_returns= pd.DataFrame(monthly_re.values,index=pd.date_range(Start_Date,Future_Date_Read, freq='M'),columns=[symbols])
+monthly_returns= pd.DataFrame(monthly_re.values,index=pd.date_range(Adjusted_Close_Prices.index[0]
+,Future_Date_Read, freq='M'),columns=[symbols])
 
 
-
-
-#change monthly_returns to returns
 
 #stage4: Import Systemic Risk Measures
 SRM_mahalanobis= srm.MahalanobisDist(monthly_returns)       #define Mahalanobis Distance Formula
@@ -88,5 +87,3 @@ systemicRiskMeasure= [SRM_mahalanobis,SRM_correlationsurprise,SRM_absorptionrati
 srm.print_systemic_Risk(systemicRiskMeasure)
 
 
-
-monthly_returns.set_index(monthly_returns.index)

@@ -79,7 +79,7 @@ def Correlation_Surprise(monthly_returns):
     #stage1: CALCULATE CORRELATION SURPRISE
     Correlation_Surprise= TS.divide(MS)
     
-    return  Correlation_Surprise, MS #return standardised Correlation Surprise and Magnitude Surprise
+    return  Correlation_Surprise, MS 
     
 
 
