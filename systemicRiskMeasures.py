@@ -33,7 +33,7 @@ def MahalanobisDist(monthly_returns):#define MahalanobisDistance function
     
     
 #Journal Article: Kinlaw and Turkington - 2012 - Correlation Surprise
-def Correlation_Surprise(monthly_returns):
+def Correlation_Surprise(returns):
     
     #Stage1: IMPORT LIBRARIES
     import pandas as pd#import pandas 
@@ -42,18 +42,18 @@ def Correlation_Surprise(monthly_returns):
          #Step1: CALCULATE TURBULENCE SCORE 
      
     #Stage 1: GENERATE TURBULENCE SCORE
-    TS= MahalanobisDist(monthly_returns)#calculate Turbulence Score from Mahalanobis Distance Function
+    TS= MahalanobisDist(returns)#calculate Turbulence Score from Mahalanobis Distance Function
     
     
          #Step2: CALCULATE MAGNITUDE SURPRISE   
     
     #Stage1: CALCULATE COVARIANCE MATRIX
-    return_covariance= monthly_returns.cov() #Generate Covariance Matrix for hisotircal returns
+    return_covariance= returns.cov() #Generate Covariance Matrix for hisotircal returns
     return_inverse= np.linalg.inv(return_covariance) #Generate Inverse Matrix for historical returns
     
     #stage2: CALCULATE THE DIFFERENCE BETWEEN THE MEAN AND HISTORICAL DATA FOR EACH INDEX
-    means= monthly_returns.mean() #Calculate historical returns means
-    diff_means= monthly_returns.subtract(means) #Calculate difference between historical return means and the historical returns
+    means= returns.mean() #Calculate historical returns means
+    diff_means= returns.subtract(means) #Calculate difference between historical return means and the historical returns
     
     #stage3: SPLIT VALUES FROM INDEX DATES
     values=diff_means.values #Split historical returns data from Dataframe
@@ -90,39 +90,42 @@ def Absorption_Ratio(returns):
     #stage1: IMPORT LIBRARIES    
     import pandas as pd  #import pandas    
     import numpy as np #import numpys  
-    import math as mth
+    import math as mth #import math
     
-    x=returns.count(axis=0)[0]-500
+    #stage1: GATHER DAILY TRAIL LENGTH
+    time_series_of_500days=returns.count(axis=0)[0]-500 #collect data that is outside of initial 500day window
     
-    plot_data=[]
-    i=0
-    while (i<x):    
+    #stage2: GENERATE ABSORPTION RATIO DATA
+    plotting_data=[]#create list titled plot data
+    i=0#set i equal to initial data of 0
+    
+    while (i<time_series_of_500days):    
         
-    #stage1: CALCULATE EXPONENTIAL WEIGHTING
+        #stage1: CALCULATE EXPONENTIAL WEIGHTING
         EWMA_returns=pd.ewma(returns, span=500) #convert returns into Exponential weighting over a window of 500 days
         trailing_return= EWMA_returns[i:i+500] #create iteration to trail 500 day periods 
         
-   #stage2: CALCULATE COVARIANCE MATRIX
+        #stage2: CALCULATE COVARIANCE MATRIX
         return_covariance= trailing_return.cov() #Generate Covariance Matrix
     
-    #stage3: CALCULATE EIGENVECTORS AND EIGENVALUES
+        #stage3: CALCULATE EIGENVECTORS AND EIGENVALUES
         ev_values,ev_vector= np.linalg.eig(return_covariance) #generate eigenvalues and vectors 
     
-    #Stage4: SORT EIGENVECTORS RESPECTIVE TO THEIR EIGENVALUES
+        #Stage4: SORT EIGENVECTORS RESPECTIVE TO THEIR EIGENVALUES
         ev_values_sort_high_to_low = ev_values.argsort()[::-1]                         
         ev_values_sort=ev_values[ev_values_sort_high_to_low] #sort eigenvalues from highest to lowest
         ev_vectors_sorted= ev_vector[:,ev_values_sort_high_to_low] #sort eigenvectors corresponding to sorted eigenvalues
     
-    #Stage5: COLLECT 1/5 OF EIGENVALUES
+        #Stage5: COLLECT 1/5 OF EIGENVALUES
         shape= ev_vectors_sorted.shape[0] #collect shape of ev_vector matrix
-        round_up_shape= mth.ceil(shape*0.2) #round shape to lowest integer
+        round_up_shape= mth.ceil(shape*0.2) #round shape to highest integer
         ev_vectors= ev_vectors_sorted[:,0:round_up_shape] #collect 1/5th the number of assets in sample
     
-    #stage6: CALCULATE ABSORPTION RATIO DATA
+        #stage6: CALCULATE ABSORPTION RATIO DATA
         variance_of_ith_eigenvector= ev_vectors.diagonal()#fetch variance of ith eigenvector
         variance_of_jth_asset= np.array(EWMA_returns).diagonal() #fetch variance of jth asset
     
-    #stage7: CONSTRUCT ABSORPTION RATIO FORMULA     
+        #stage7: CONSTRUCT ABSORPTION RATIO FORMULA     
         numerator= variance_of_ith_eigenvector.sum() #calculate the sum to n of variance of ith eigenvector
         absol_numerator= mth.fabs(numerator) #convert to absoluate values
         denominator= variance_of_jth_asset.sum()#calculate the sum to n of variance of jth asset
@@ -130,18 +133,18 @@ def Absorption_Ratio(returns):
        
         Absorption_Ratio= absol_numerator/absol_denominator#calculate Absorption ratio
     
-    #stage8: Append Data
-        plot_data.append(Absorption_Ratio) #Append Absorption Ratio iterations into plot_data list
+        #stage8: Append Data
+        plotting_data.append(Absorption_Ratio) #Append Absorption Ratio iterations into plotting_data list
         i=i+1 #allow iteration to increase in intervals of 1
     
-    #stage9: Plot Data
-    plot_array= np.array(plot_data)#convert plot_data into array
-    dates= returns[0:x].index#gather dates index
+        #stage9: Plot Data
+    plot_array= np.array(plotting_data)#convert plotting_data into array
+    dates= returns[0:time_series_of_500days].index#gather dates index
     Absorption_Ratio=pd.DataFrame(plot_array,index=dates,columns=list('R'))#merge dates and Absorption ratio returns
         
     return  Absorption_Ratio #print Absorption Ratio
     
-    
+    #convert to monthly returns 
 
 #Plotting Systemic Risk Measures
 def print_systemic_Risk(systemicRiskMeasure):
@@ -189,3 +192,33 @@ def print_systemic_Risk(systemicRiskMeasure):
    plt.plot(systemicRiskMeasure[2].index,systemicRiskMeasure[2].values)#graph line chart of Absorption Ratio
    plt.show()
    
+def monthly_returns(returns,Adjusted_Close_Prices,symbols,End_Date):
+    
+    import pandas as pd
+    import numpy as np
+    import datetime as dt
+    
+    returns_array=returns.values #n_array
+    d0=Adjusted_Close_Prices.index
+    x=returns.count()[0]
+
+    yyyymm=[]
+    for i in range(0,x):
+        a=d0.year[i]
+        b="{0:02}".format(d0.month[i])
+   
+        yyyymm.append(str(int(str(a)+str(b))))
+        
+    
+    y=pd.DataFrame(returns_array,index=yyyymm,columns=[symbols])
+    monthly_re=y.groupby(y.index).sum()
+    total_number_observations=y.groupby(y.index).count()
+
+    #Add 30 dates ahead
+    Date=dt.datetime.strptime(End_Date, "%m/%d/%Y")
+    Future_Date = Date + dt.timedelta(days=31)
+    Future_Date_Read= Future_Date.strftime('%m/%d/%Y')
+
+    monthly_returns= pd.DataFrame(monthly_re.values,index=pd.date_range(returns.index[0],Future_Date_Read, freq='M'),columns=[symbols])
+    
+    return monthly_returns
