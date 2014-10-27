@@ -4,6 +4,7 @@ import systemicRiskMeasures as srm #import Systemic Risk Measures library
 import matplotlib.pyplot as plt
 import pandas as pd
 import datetime as dt 
+import numpy as np
 #stage2: IMPORT DATA WITH ANY NUMBER OF PORTFOLIOS 
 
           #Must arrange tickers in alphabetical order
@@ -49,8 +50,8 @@ returns = np.log(Adjusted_Close_Prices/Adjusted_Close_Prices.shift(1)).dropna() 
 monthly_returns = returns.resample('M',how=sum)
 
 #stage4: Import Systemic Risk Measures
-SRM_mahalanobis= srm.MahalanobisDist(monthly_returns)       #define Mahalanobis Distance Formula
-SRM_correlationsurprise= srm.Correlation_Surprise(monthly_returns)#define Correlation Surprise Score
+SRM_mahalanobis= srm.MahalanobisDist(returns)[0]       #define Mahalanobis Distance Formula
+SRM_correlationsurprise= srm.Correlation_Surprise(returns)#define Correlation Surprise Score
 SRM_absorptionratio= srm.Absorption_Ratio(returns)#define Absorption Ratio
 
 systemicRiskMeasure= [SRM_mahalanobis,SRM_correlationsurprise,SRM_absorptionratio] # group systemic risk measures

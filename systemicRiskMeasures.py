@@ -1,7 +1,7 @@
 ##Systemic Risk Measures##
 
 #Journal Article: Kritzman and Li - 2010 - Skulls, Financial Turbulence, and Risk Management
-def MahalanobisDist(monthly_returns):#define MahalanobisDistance function
+def MahalanobisDist(returns):#define MahalanobisDistance function
     
     #stage1: IMPORT LIBRARIES
     import pandas as pd#import pandas    
@@ -9,12 +9,12 @@ def MahalanobisDist(monthly_returns):#define MahalanobisDistance function
     
     
     #stage2: CALCULATE COVARIANCE MATRIX
-    return_covariance= monthly_returns.cov() #Generate Covariance Matrix for historical returns
+    return_covariance= returns.cov() #Generate Covariance Matrix for historical returns
     return_inverse= np.linalg.inv(return_covariance) #Generate Inverse Matrix for historical returns
 
     #stage3: CALCULATE THE DIFFERENCE BETWEEN THE MEAN AND HISTORICAL DATA FOR EACH INDEX
-    means= monthly_returns.mean()#Calculate historical returns means for each asset
-    diff_means= monthly_returns.subtract(means) #Calculate difference between historical return means and the historical returns
+    means= returns.mean()#Calculate historical returns means for each asset
+    diff_means= returns.subtract(means) #Calculate difference between historical return means and the historical returns
 
     #stage4: SPLIT VALUES FROM INDEX DATES
     values=diff_means.values #Split historical returns from Dataframe
@@ -27,9 +27,9 @@ def MahalanobisDist(monthly_returns):#define MahalanobisDistance function
         
     #stage6: CONVERT LIST Type TO DATAFRAME Type
     md_array= np.array(md) #Translate md List type to md Numpy type
-    MD=pd.DataFrame(md_array,index=dates,columns=list('R')) #Join Dataframe and Numpy array back together
-    
-    return MD #return Mahalanobis Distance data
+    Mal_Dist=pd.DataFrame(md_array,index=dates,columns=list('R')) #Join Dataframe and Numpy array back together
+    MD= Mal_Dist.resample('M',how=None)#resample monthly data by average 
+    return MD,Mal_Dist #return Mahalanobis Distance data
     
     
 #Journal Article: Kinlaw and Turkington - 2012 - Correlation Surprise
@@ -42,7 +42,7 @@ def Correlation_Surprise(returns):
          #Step1: CALCULATE TURBULENCE SCORE 
      
     #Stage 1: GENERATE TURBULENCE SCORE
-    TS= MahalanobisDist(returns)#calculate Turbulence Score from Mahalanobis Distance Function
+    TS= MahalanobisDist(returns)[1]#calculate Turbulence Score from Mahalanobis Distance Function
     
     
          #Step2: CALCULATE MAGNITUDE SURPRISE   
@@ -73,17 +73,17 @@ def Correlation_Surprise(returns):
     #stage6: CONVERT LIST Type TO DATAFRAME Type    
     ms_array= np.array(ms)  #Translate ms List type to ts Numpy type
     Mag_Sur=pd.DataFrame(ms_array,index=dates,columns=list('R')) #Join Dataframe and Numpy array back together
-    MS=Mag_Sur.resample('M') #create monthly returns for magnitude surprise
+    MS=Mag_Sur.resample('M',how=None) #create monthly returns for magnitude surprise
     
         
         #step3:CALCULATE CORRELATION SURPRISE
     #stage1: CALCULATE CORRELATION SURPRISE
-    Corre_Sur= TS.divide(MS)
-    Correlation_Surprise=Corre_Sur.resample('M') #create monthly returns for correlation surprise
+    Corre_Sur= TS.divide(Mag_Sur)
+    Correlation_Surprise=Corre_Sur.resample('M',how=None) #create monthly returns for correlation surprise
     
     Correlation_monthly_trail= Corre_Sur*Mag_Sur
-    resample_Correlation_monthly= Correlation_monthly_trail.resample('M',how=sum)
-    MS_sum=Mag_Sur.resample('M',how=sum)
+    resample_Correlation_monthly= Correlation_monthly_trail.resample('M',how=None)
+    MS_sum=Mag_Sur.resample('M',how=None)
     Correlation_Surprise_monthly=resample_Correlation_monthly.divide(MS_sum)
     
     return  Correlation_Surprise_monthly, MS 
@@ -148,7 +148,7 @@ def Absorption_Ratio(returns):
     plot_array= np.array(plotting_data)#convert plotting_data into array
     dates= returns[0:time_series_of_500days].index#gather dates index
     Absorption_Ratio_daily=pd.DataFrame(plot_array,index=dates,columns=list('R'))#merge dates and Absorption ratio returns
-    Absorption_Ratio= Absorption_Ratio_daily.resample('M', how=sum)
+    Absorption_Ratio= Absorption_Ratio_daily.resample('M', how=None)
     return  Absorption_Ratio #print Absorption Ratio
     
     #convert to monthly returns 
@@ -199,33 +199,3 @@ def print_systemic_Risk(systemicRiskMeasure):
    plt.plot(systemicRiskMeasure[2].index,systemicRiskMeasure[2].values)#graph line chart of Absorption Ratio
    plt.show()
    
-def monthly_returns(returns,Adjusted_Close_Prices,symbols,End_Date):
-    
-    import pandas as pd
-    import numpy as np
-    import datetime as dt
-    
-    returns_array=returns.values #n_array
-    d0=Adjusted_Close_Prices.index
-    x=returns.count()[0]
-
-    yyyymm=[]
-    for i in range(0,x):
-        a=d0.year[i]
-        b="{0:02}".format(d0.month[i])
-   
-        yyyymm.append(str(int(str(a)+str(b))))
-        
-    
-    y=pd.DataFrame(returns_array,index=yyyymm,columns=[symbols])
-    monthly_re=y.groupby(y.index).sum()
-    total_number_observations=y.groupby(y.index).count()
-
-    #Add 30 dates ahead
-    Date=dt.datetime.strptime(End_Date, "%m/%d/%Y")
-    Future_Date = Date + dt.timedelta(days=31)
-    Future_Date_Read= Future_Date.strftime('%m/%d/%Y')
-
-    monthly_returns= pd.DataFrame(monthly_re.values,index=pd.date_range(returns.index[0],Future_Date_Read, freq='M'),columns=[symbols])
-    
-    return monthly_returns,y
