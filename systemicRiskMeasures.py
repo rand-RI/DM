@@ -72,14 +72,21 @@ def Correlation_Surprise(returns):
 
     #stage6: CONVERT LIST Type TO DATAFRAME Type    
     ms_array= np.array(ms)  #Translate ms List type to ts Numpy type
-    MS=pd.DataFrame(ms_array,index=dates,columns=list('R')) #Join Dataframe and Numpy array back together
+    Mag_Sur=pd.DataFrame(ms_array,index=dates,columns=list('R')) #Join Dataframe and Numpy array back together
+    MS=Mag_Sur.resample('M') #create monthly returns for magnitude surprise
     
         
         #step3:CALCULATE CORRELATION SURPRISE
     #stage1: CALCULATE CORRELATION SURPRISE
-    Correlation_Surprise= TS.divide(MS)
+    Corre_Sur= TS.divide(MS)
+    Correlation_Surprise=Corre_Sur.resample('M') #create monthly returns for correlation surprise
     
-    return  Correlation_Surprise, MS 
+    Correlation_monthly_trail= Corre_Sur*Mag_Sur
+    resample_Correlation_monthly= Correlation_monthly_trail.resample('M',how=sum)
+    MS_sum=Mag_Sur.resample('M',how=sum)
+    Correlation_Surprise_monthly=resample_Correlation_monthly.divide(MS_sum)
+    
+    return  Correlation_Surprise_monthly, MS 
     
 
 
@@ -140,8 +147,8 @@ def Absorption_Ratio(returns):
         #stage9: Plot Data
     plot_array= np.array(plotting_data)#convert plotting_data into array
     dates= returns[0:time_series_of_500days].index#gather dates index
-    Absorption_Ratio=pd.DataFrame(plot_array,index=dates,columns=list('R'))#merge dates and Absorption ratio returns
-        
+    Absorption_Ratio_daily=pd.DataFrame(plot_array,index=dates,columns=list('R'))#merge dates and Absorption ratio returns
+    Absorption_Ratio= Absorption_Ratio_daily.resample('M', how=sum)
     return  Absorption_Ratio #print Absorption Ratio
     
     #convert to monthly returns 
@@ -221,4 +228,4 @@ def monthly_returns(returns,Adjusted_Close_Prices,symbols,End_Date):
 
     monthly_returns= pd.DataFrame(monthly_re.values,index=pd.date_range(returns.index[0],Future_Date_Read, freq='M'),columns=[symbols])
     
-    return monthly_returns
+    return monthly_returns,y

@@ -45,16 +45,12 @@ Adjusted_Close_Prices = Historical_Prices['Adj Close'].dropna()  # Scrape adjust
 
 #daily returns:
 returns = np.log(Adjusted_Close_Prices/Adjusted_Close_Prices.shift(1)).dropna()  # Continuously compounded returns while also removing top row of Nan data
-
-#montly Returns:
-monthly_returns=srm.monthly_returns(returns,Adjusted_Close_Prices,symbols,End_Date)
-
-
-
+#monthly returns
+monthly_returns = returns.resample('M',how=sum)
 
 #stage4: Import Systemic Risk Measures
 SRM_mahalanobis= srm.MahalanobisDist(monthly_returns)       #define Mahalanobis Distance Formula
-SRM_correlationsurprise= srm.Correlation_Surprise(returns)#define Correlation Surprise Score
+SRM_correlationsurprise= srm.Correlation_Surprise(monthly_returns)#define Correlation Surprise Score
 SRM_absorptionratio= srm.Absorption_Ratio(returns)#define Absorption Ratio
 
 systemicRiskMeasure= [SRM_mahalanobis,SRM_correlationsurprise,SRM_absorptionratio] # group systemic risk measures
