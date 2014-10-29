@@ -3,18 +3,20 @@
 #Journal Article: Kritzman and Li - 2010 - Skulls, Financial Turbulence, and Risk Management
 def MahalanobisDist(returns):#define MahalanobisDistance function
     
+        
     #stage1: IMPORT LIBRARIES
     import pandas as pd#import pandas    
     import numpy as np#import numpy
     
+    monthly_returns = returns.resample('M',how=sum)
     
     #stage2: CALCULATE COVARIANCE MATRIX
-    return_covariance= returns.cov() #Generate Covariance Matrix for historical returns
+    return_covariance= monthly_returns.cov() #Generate Covariance Matrix for historical returns
     return_inverse= np.linalg.inv(return_covariance) #Generate Inverse Matrix for historical returns
 
     #stage3: CALCULATE THE DIFFERENCE BETWEEN THE MEAN AND HISTORICAL DATA FOR EACH INDEX
-    means= returns.mean()#Calculate historical returns means for each asset
-    diff_means= returns.subtract(means) #Calculate difference between historical return means and the historical returns
+    means= monthly_returns.mean()#Calculate historical returns means for each asset
+    diff_means= monthly_returns.subtract(means) #Calculate difference between historical return means and the historical returns
 
     #stage4: SPLIT VALUES FROM INDEX DATES
     values=diff_means.values #Split historical returns from Dataframe
@@ -79,14 +81,13 @@ def Correlation_Surprise(returns):
         #step3:CALCULATE CORRELATION SURPRISE
     #stage1: CALCULATE CORRELATION SURPRISE
     Corre_Sur= TS.divide(Mag_Sur)
-    Correlation_Surprise=Corre_Sur.resample('M',how=None) #create monthly returns for correlation surprise
     
     Correlation_monthly_trail= Corre_Sur*Mag_Sur
-    resample_Correlation_monthly= Correlation_monthly_trail.resample('M',how=None)
-    MS_sum=Mag_Sur.resample('M',how=None)
+    resample_Correlation_monthly= Correlation_monthly_trail.resample('M',how=sum)
+    MS_sum=Mag_Sur.resample('M',how=sum)
     Correlation_Surprise_monthly=resample_Correlation_monthly.divide(MS_sum)
     
-    return  Correlation_Surprise_monthly, MS 
+    return  Correlation_Surprise_monthly, MS
     
 
 
@@ -130,7 +131,7 @@ def Absorption_Ratio(returns):
     
         #stage6: CALCULATE ABSORPTION RATIO DATA
         variance_of_ith_eigenvector= ev_vectors.diagonal()#fetch variance of ith eigenvector
-        variance_of_jth_asset= np.array(EWMA_returns).diagonal() #fetch variance of jth asset
+        variance_of_jth_asset= np.array(return_covariance).diagonal() #fetch variance of jth asset
     
         #stage7: CONSTRUCT ABSORPTION RATIO FORMULA     
         numerator= variance_of_ith_eigenvector.sum() #calculate the sum to n of variance of ith eigenvector
@@ -148,7 +149,7 @@ def Absorption_Ratio(returns):
     plot_array= np.array(plotting_data)#convert plotting_data into array
     dates= returns[0:time_series_of_500days].index#gather dates index
     Absorption_Ratio_daily=pd.DataFrame(plot_array,index=dates,columns=list('R'))#merge dates and Absorption ratio returns
-    Absorption_Ratio= Absorption_Ratio_daily.resample('M', how=None)
+    Absorption_Ratio= Absorption_Ratio_daily.resample('Q', how=None)
     return  Absorption_Ratio #print Absorption Ratio
     
     #convert to monthly returns 
@@ -163,7 +164,7 @@ def print_systemic_Risk(systemicRiskMeasure):
    plt.xticks(rotation=50)  #rotate x axis labels 50 degrees
    plt.xlabel('Year')#label x axis Year
    plt.ylabel('Index')#label y axis Index
-   plt.suptitle('Historical Turbulence Index Calculated from Daily Retuns of G20 Countries')#label title of graph Historical Turbulence Index Calculated from Daily Retuns of G20 Countries
+   plt.suptitle('Historical Turbulence Index Calculated from Yahoo Finance World Indices')#label title of graph Historical Turbulence Index Calculated from Daily Retuns of G20 Countries
    plt.bar(systemicRiskMeasure[0].index,systemicRiskMeasure[0].values, width=2)#graph bar chart of Mahalanobis Distance
    plt.show()    
    
@@ -176,7 +177,7 @@ def print_systemic_Risk(systemicRiskMeasure):
    plt.xticks(rotation=50)  #rotate x axis labels 50 degrees
    plt.xlabel('Year')#label x axis Year
    plt.ylabel('Index')#label y axis Index
-   plt.suptitle('Magnitude Surprise Index Calculated from Monthly Retuns of G20 Countries')#label title of graph Historical Turbulence Index Calculated from Daily Retuns of G20 Countries
+   plt.suptitle('Magnitude Surprise Index Calculated from Monthly Retuns of Yahoo Finance World Indices')#label title of graph Historical Turbulence Index Calculated from Daily Retuns of G20 Countries
    plt.bar(Magnitude_Surprise.index,Magnitude_Surprise.values, width=2)#graph bar chart of Mahalanobis Distance
    plt.show()
    
@@ -185,7 +186,7 @@ def print_systemic_Risk(systemicRiskMeasure):
    plt.xticks(rotation=50)  #rotate x axis labels 50 degrees
    plt.xlabel('Year')#label x axis Year
    plt.ylabel('Index')#label y axis Index
-   plt.suptitle('Correlation Surprise Index Calculated from Monthly Retuns of G20 Countries')#label title of graph Historical Turbulence Index Calculated from Daily Retuns of G20 Countries
+   plt.suptitle('Correlation Surprise Index Calculated from Monthly Retuns of Yahoo Finance World Indices')#label title of graph Historical Turbulence Index Calculated from Daily Retuns of G20 Countries
    plt.bar(Correlation_Surprise.index,Correlation_Surprise.values, width=2)#graph bar chart of Mahalanobis Distance
    plt.show()
    
