@@ -8,15 +8,14 @@ def MahalanobisDist(returns):#define MahalanobisDistance function
     import pandas as pd#import pandas    
     import numpy as np#import numpy
     
-    monthly_returns = returns.resample('M',how=sum)
-    
+        
     #stage2: CALCULATE COVARIANCE MATRIX
-    return_covariance= monthly_returns.cov() #Generate Covariance Matrix for historical returns
+    return_covariance= returns.cov() #Generate Covariance Matrix for historical returns
     return_inverse= np.linalg.inv(return_covariance) #Generate Inverse Matrix for historical returns
 
     #stage3: CALCULATE THE DIFFERENCE BETWEEN THE MEAN AND HISTORICAL DATA FOR EACH INDEX
-    means= monthly_returns.mean()#Calculate historical returns means for each asset
-    diff_means= monthly_returns.subtract(means) #Calculate difference between historical return means and the historical returns
+    means= returns.mean()#Calculate historical returns means for each asset
+    diff_means= returns.subtract(means) #Calculate difference between historical return means and the historical returns
 
     #stage4: SPLIT VALUES FROM INDEX DATES
     values=diff_means.values #Split historical returns from Dataframe
@@ -149,7 +148,7 @@ def Absorption_Ratio(returns):
     plot_array= np.array(plotting_data)#convert plotting_data into array
     dates= returns[0:time_series_of_500days].index#gather dates index
     Absorption_Ratio_daily=pd.DataFrame(plot_array,index=dates,columns=list('R'))#merge dates and Absorption ratio returns
-    Absorption_Ratio= Absorption_Ratio_daily.resample('Q', how=None)
+    Absorption_Ratio= Absorption_Ratio_daily.resample('M', how=None)
     return  Absorption_Ratio #print Absorption Ratio
     
     #convert to monthly returns 
@@ -164,7 +163,7 @@ def print_systemic_Risk(systemicRiskMeasure):
    plt.xticks(rotation=50)  #rotate x axis labels 50 degrees
    plt.xlabel('Year')#label x axis Year
    plt.ylabel('Index')#label y axis Index
-   plt.suptitle('Historical Turbulence Index Calculated from Yahoo Finance World Indices')#label title of graph Historical Turbulence Index Calculated from Daily Retuns of G20 Countries
+   plt.suptitle('Mahalanobis Distance Index Calculated from Yahoo Finance World Indices')#label title of graph Historical Turbulence Index Calculated from Daily Retuns of G20 Countries
    plt.bar(systemicRiskMeasure[0].index,systemicRiskMeasure[0].values, width=2)#graph bar chart of Mahalanobis Distance
    plt.show()    
    
@@ -196,7 +195,7 @@ def print_systemic_Risk(systemicRiskMeasure):
    plt.xticks(rotation=50)  #rotate x axis labels 50 degrees
    plt.xlabel('Year')#label x axis Year
    plt.ylabel('Index')#label y axis Index
-   plt.suptitle('Absorption Ratio')#label title of graph Absorption Ratio
+   plt.suptitle('Absorption Ratio Index Calculated from Monthly Retuns of Yahoo Finance World Indices')#label title of graph Absorption Ratio
    plt.plot(systemicRiskMeasure[2].index,systemicRiskMeasure[2].values)#graph line chart of Absorption Ratio
    plt.show()
    

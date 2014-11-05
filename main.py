@@ -11,10 +11,9 @@ import numpy as np
 symbols = ['^AORD','^ATX','^BFX','^BSESN','^BVSP','^FCHI','^GDAXI','^GSPC','^GSPTSE','^HSI','^JKSE','^KLSE','^KS11','^MERV','^MXX','^N225','^SSEC','^STI','^TWII'] # List all stock symbols to download in alphabetical order
 
 
-
 #stage3: DOWNLOAD DATA AND CALCULATE RETURN VALUES
 Start_Date='1/1/1980'#MM,DD,YY
-End_Date='12/10/2014'#MM,DD,YY
+End_Date='12/30/2009'#MM,DD,YY
 Historical_Prices = pdio.get_data_yahoo(symbols,start= Start_Date,end= End_Date) # Download data from YAHOO as a pandas Panel object
 Adjusted_Close_Prices = Historical_Prices['Adj Close'].dropna()  # Scrape adjusted closing prices as pandas DataFrane object while also removing all Nan data
 
