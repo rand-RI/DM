@@ -137,7 +137,7 @@ def Absorption_Ratio(returns):
         denominator= variance_of_jth_asset.sum()#calculate the sum to n of variance of jth asset
         absol_denominator= mth.fabs(denominator)#convert to absoluate values
        
-        Absorption_Ratio= numerator/denominator#calculate Absorption ratio
+        Absorption_Ratio= absol_numerator/absol_denominator#calculate Absorption ratio
     
         #stage8: Append Data
         plotting_data.append(Absorption_Ratio) #Append Absorption Ratio iterations into plotting_data list
@@ -145,7 +145,7 @@ def Absorption_Ratio(returns):
     
         #stage9: Plot Data
     plot_array= np.array(plotting_data)#convert plotting_data into array
-    dates= returns[0:time_series_of_500days].index#gather dates index
+    dates= returns[500:time_series_of_500days+500].index#gather dates index
     Absorption_Ratio_daily=pd.DataFrame(plot_array,index=dates,columns=list('R'))#merge dates and Absorption ratio returns
     Absorption_Ratio= Absorption_Ratio_daily.resample('M', how=None)
     return  Absorption_Ratio #print Absorption Ratio

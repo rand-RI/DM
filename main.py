@@ -23,8 +23,7 @@ returns = np.log(Adjusted_Close_Prices/Adjusted_Close_Prices.shift(1)).dropna() 
 
 
 #stage4: Import Systemic Risk Measures
-SRM_mahalanobis= srm.MahalanobisDist(returns)[0]
-      #define Mahalanobis Distance Formula
+SRM_mahalanobis= srm.MahalanobisDist(returns)[0]#define Mahalanobis Distance Formula
 SRM_correlationsurprise= srm.Correlation_Surprise(returns)#define Correlation Surprise Score
 SRM_absorptionratio= srm.Absorption_Ratio(returns)#define Absorption Ratio
 
