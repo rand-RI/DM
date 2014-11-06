@@ -99,14 +99,14 @@ def Absorption_Ratio(returns):
     import math as mth #import math
     
     #stage1: GATHER DAILY TRAIL LENGTH
-    time_series_of_500days=returns.count(axis=0)[0]-500 #collect data that is outside of initial 500day window
+    time_series_of_500days=len(returns)-500 #collect data that is outside of initial 500day window
     
     #stage2: GENERATE ABSORPTION RATIO DATA
     plotting_data=[]#create list titled plot data
-    i=0#set i equal to initial data of 0
-    
-    while (i<time_series_of_500days):    
         
+    for i in range(time_series_of_500days):
+    
+       
         #stage1: CALCULATE EXPONENTIAL WEIGHTING
         EWMA_returns=pd.ewma(returns, span=500) #convert returns into Exponential weighting over a window of 500 days
         trailing_return= EWMA_returns[i:i+500] #create iteration to trail 500 day periods 
@@ -124,7 +124,7 @@ def Absorption_Ratio(returns):
     
         #Stage5: COLLECT 1/5 OF EIGENVALUES
         shape= ev_vectors_sorted.shape[0] #collect shape of ev_vector matrix
-        round_up_shape= mth.ceil(shape*0.2) #round shape to highest integer
+        round_up_shape= mth.floor(shape*0.2) #round shape to highest integer
         ev_vectors= ev_vectors_sorted[:,0:round_up_shape] #collect 1/5th the number of assets in sample
     
         #stage6: CALCULATE ABSORPTION RATIO DATA
@@ -137,11 +137,11 @@ def Absorption_Ratio(returns):
         denominator= variance_of_jth_asset.sum()#calculate the sum to n of variance of jth asset
         absol_denominator= mth.fabs(denominator)#convert to absoluate values
        
-        Absorption_Ratio= absol_numerator/absol_denominator#calculate Absorption ratio
+        Absorption_Ratio= numerator/denominator#calculate Absorption ratio
     
         #stage8: Append Data
         plotting_data.append(Absorption_Ratio) #Append Absorption Ratio iterations into plotting_data list
-        i=i+1 #allow iteration to increase in intervals of 1
+        
     
         #stage9: Plot Data
     plot_array= np.array(plotting_data)#convert plotting_data into array

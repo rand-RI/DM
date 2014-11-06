@@ -8,8 +8,7 @@ import numpy as np
 #stage2: IMPORT DATA WITH ANY NUMBER OF PORTFOLIOS 
 
           #Must arrange tickers in alphabetical order
-symbols = ['^NYA','^IXIC','^GSPC','^TYX']
-#['^AORD','^ATX','^BFX','^BSESN','^BVSP','^FCHI','^GDAXI','^GSPC','^GSPTSE','^HSI','^JKSE','^KLSE','^KS11','^MERV','^MXX','^N225','^SSEC','^STI','^TWII'] # List all stock symbols to download in alphabetical order
+symbols = ['^AORD','^ATX','^BFX','^BSESN','^BVSP','^FCHI','^GDAXI','^GSPC','^GSPTSE','^HSI','^JKSE','^KLSE','^KS11','^MERV','^MXX','^N225','^SSEC','^STI','^TWII'] # List all stock symbols to download in alphabetical order
 
 
 #stage3: DOWNLOAD DATA AND CALCULATE RETURN VALUES
@@ -32,7 +31,7 @@ SRM_absorptionratio= srm.Absorption_Ratio(returns)#define Absorption Ratio
 systemicRiskMeasure= [SRM_mahalanobis,SRM_correlationsurprise,SRM_absorptionratio] # group systemic risk measures
 
 srm.print_systemic_Risk(systemicRiskMeasure)
-a[a<3].dropna()
+
 
 
 #sysRiskMeasure=0
