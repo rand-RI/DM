@@ -5,11 +5,12 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import datetime as dt 
 import numpy as np
-#stage2: IMPORT DATA WITH ANY NUMBER OF PORTFOLIOS 
 
+#stage2: IMPORT DATA WITH ANY NUMBER OF PORTFOLIOS 
           #Must arrange tickers in alphabetical order
 symbols = ['^AORD','^ATX','^BFX','^BSESN','^BVSP','^FCHI','^GDAXI','^GSPC','^GSPTSE','^HSI','^JKSE','^KLSE','^KS11','^MERV','^MXX','^N225','^SSEC','^STI','^TWII'] # List all stock symbols to download in alphabetical order
 #List of symbols is a collection of Yahoo Finance World Indices
+
 
 #stage3: DOWNLOAD DATA AND CALCULATE RETURN VALUES
 Start_Date='11/1/1980'#MM,DD,YY
@@ -18,6 +19,7 @@ Historical_Prices = pdio.get_data_yahoo(symbols,start= Start_Date,end= End_Date)
 Adjusted_Close_Prices = Historical_Prices['Adj Close'].dropna()  # Scrape adjusted closing prices as pandas DataFrane object while also removing all Nan data
 #daily returns:
 returns = np.log(Adjusted_Close_Prices/Adjusted_Close_Prices.shift(1)).dropna()  # Continuously compounded returns while also removing top row of Nan data
+
 
 #stage4: Import Systemic Risk Measures
 SRM_mahalanobis= srm.MahalanobisDist(returns)[0]#define Mahalanobis Distance Formula

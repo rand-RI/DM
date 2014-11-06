@@ -157,7 +157,6 @@ def print_systemic_Risk(systemicRiskMeasure):
     
    import matplotlib.pyplot as plt
     
-   #if statement? 
    #1 MahalanobisDistance
    plt.xticks(rotation=50)  #rotate x axis labels 50 degrees
    plt.xlabel('Year')#label x axis Year
