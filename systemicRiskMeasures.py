@@ -112,10 +112,10 @@ def Absorption_Ratio(returns):
         trailing_return= EWMA_returns[i:i+500] #create iteration to trail 500 day periods 
         
         #stage2: CALCULATE COVARIANCE MATRIX
-        return_covariance= trailing_return.cov() #Generate Covariance Matrix
+        return_covariance= trailing_return.cov() #Generate Covariance Matrix over 500 day window
     
         #stage3: CALCULATE EIGENVECTORS AND EIGENVALUES
-        ev_values,ev_vector= np.linalg.eig(return_covariance) #generate eigenvalues and vectors 
+        ev_values,ev_vector= np.linalg.eig(return_covariance) #generate eigenvalues and vectors over 500 day window 
     
         #Stage4: SORT EIGENVECTORS RESPECTIVE TO THEIR EIGENVALUES
         ev_values_sort_high_to_low = ev_values.argsort()[::-1]                         
@@ -145,9 +145,9 @@ def Absorption_Ratio(returns):
     
         #stage9: Plot Data
     plot_array= np.array(plotting_data)#convert plotting_data into array
-    dates= returns[500:time_series_of_500days+500].index#gather dates index
+    dates= returns[500:time_series_of_500days+500].index#gather dates index over 500 day window iterations
     Absorption_Ratio_daily=pd.DataFrame(plot_array,index=dates,columns=list('R'))#merge dates and Absorption ratio returns
-    Absorption_Ratio= Absorption_Ratio_daily.resample('M', how=None)
+    Absorption_Ratio= Absorption_Ratio_daily.resample('M', how=None)#group daily data into monthly data
     return  Absorption_Ratio #print Absorption Ratio
     
     #convert to monthly returns 
