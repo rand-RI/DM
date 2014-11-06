@@ -8,12 +8,11 @@ def MahalanobisDist(returns):#define MahalanobisDistance function
     import pandas as pd#import pandas    
     import numpy as np#import numpy
     
-        
     #stage2: CALCULATE COVARIANCE MATRIX
     return_covariance= returns.cov() #Generate Covariance Matrix for historical returns
     return_inverse= np.linalg.inv(return_covariance) #Generate Inverse Matrix for historical returns
 
-    #stage3: CALCULATE THE DIFFERENCE BETWEEN THE MEAN AND HISTORICAL DATA FOR EACH INDEX
+    #stage3: CALCULATE THE DIFFERENCE BETWEEN THE SAMPLE MEAN AND HISTORICAL DATA
     means= returns.mean()#Calculate historical returns means for each asset
     diff_means= returns.subtract(means) #Calculate difference between historical return means and the historical returns
 
@@ -29,7 +28,7 @@ def MahalanobisDist(returns):#define MahalanobisDistance function
     #stage6: CONVERT LIST Type TO DATAFRAME Type
     md_array= np.array(md) #Translate md List type to md Numpy type
     Mal_Dist=pd.DataFrame(md_array,index=dates,columns=list('R')) #Join Dataframe and Numpy array back together
-    MD= Mal_Dist.resample('M',how=None)#resample monthly data by average 
+    MD= Mal_Dist.resample('M')#resample monthly data by average 
     return MD,Mal_Dist #return Mahalanobis Distance data
     
     
@@ -63,7 +62,7 @@ def Correlation_Surprise(returns):
     #Stage4: Create Covariance and BLINDED MATRIX 
     inverse_diagonals=return_inverse.diagonal() #fetch only the matrix variances
     inverse_zeros=np.zeros(return_inverse.shape) #generate zeroed matrix with dynamic sizing properties 
-    zeroed_matrix=np.fill_diagonal(inverse_zeros,inverse_diagonals) #combind zeroed matrix and variances to form blinded matrix
+    zeroed_matrix=np.fill_diagonal(inverse_zeros,inverse_diagonals) #combine zeroed matrix and variances to form blinded matrix
     blinded_matrix=inverse_zeros #define blinded matrix
     
     #stage5: BUILD FORMULA
@@ -74,7 +73,7 @@ def Correlation_Surprise(returns):
     #stage6: CONVERT LIST Type TO DATAFRAME Type    
     ms_array= np.array(ms)  #Translate ms List type to ts Numpy type
     Mag_Sur=pd.DataFrame(ms_array,index=dates,columns=list('R')) #Join Dataframe and Numpy array back together
-    MS=Mag_Sur.resample('M',how=None) #create monthly returns for magnitude surprise
+    MS=Mag_Sur.resample('M') #create monthly returns for magnitude surprise
     
         
         #step3:CALCULATE CORRELATION SURPRISE
