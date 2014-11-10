@@ -108,11 +108,11 @@ def Absorption_Ratio(returns):
     
        
         #stage1: CALCULATE EXPONENTIAL WEIGHTING
-        EWMA_returns=pd.ewma(returns, span=500) #convert returns into Exponential weighting over a window of 500 days
-        trailing_return= EWMA_returns[i:i+500] #create iteration to trail 500 day periods 
-        
+        returns_500day= returns[i:i+500]#create 500 day trailing window        
+        EWMA_returns=pd.ewma(returns_500day, halflife=250)
+    
         #stage2: CALCULATE COVARIANCE MATRIX
-        return_covariance= trailing_return.cov() #Generate Covariance Matrix over 500 day window
+        return_covariance= EWMA_returns.cov() #Generate Covariance Matrix over 500 day window
     
         #stage3: CALCULATE EIGENVECTORS AND EIGENVALUES
         ev_values,ev_vector= np.linalg.eig(return_covariance) #generate eigenvalues and vectors over 500 day window 
@@ -124,8 +124,8 @@ def Absorption_Ratio(returns):
     
         #Stage5: COLLECT 1/5 OF EIGENVALUES
         shape= ev_vectors_sorted.shape[0] #collect shape of ev_vector matrix
-        round_up_shape= mth.floor(shape*0.2) #round shape to highest integer
-        ev_vectors= ev_vectors_sorted[:,0:round_up_shape] #collect 1/5th the number of assets in sample
+        round_down_shape= mth.floor(shape*0.2) #round shape to highest integer
+        ev_vectors= ev_vectors_sorted[:,0:round_down_shape] #collect 1/5th the number of assets in sample
     
         #stage6: CALCULATE ABSORPTION RATIO DATA
         variance_of_ith_eigenvector= ev_vectors.diagonal()#fetch variance of ith eigenvector
@@ -133,11 +133,9 @@ def Absorption_Ratio(returns):
     
         #stage7: CONSTRUCT ABSORPTION RATIO FORMULA     
         numerator= variance_of_ith_eigenvector.sum() #calculate the sum to n of variance of ith eigenvector
-        absol_numerator= mth.fabs(numerator) #convert to absoluate values
         denominator= variance_of_jth_asset.sum()#calculate the sum to n of variance of jth asset
-        absol_denominator= mth.fabs(denominator)#convert to absoluate values
-       
-        Absorption_Ratio= absol_numerator/absol_denominator#calculate Absorption ratio
+               
+        Absorption_Ratio= numerator/denominator#calculate Absorption ratio
     
         #stage8: Append Data
         plotting_data.append(Absorption_Ratio) #Append Absorption Ratio iterations into plotting_data list
