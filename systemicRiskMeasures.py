@@ -1,3 +1,24 @@
+#pull data
+
+def pulldata(symbols, Start_Date,End_Date,frequency):
+    
+    import pandas.io.data as pdio
+    import numpy as np
+    import pandas as pd
+    
+    Historical_Prices = pdio.get_data_yahoo(symbols,start= Start_Date,end= End_Date) 
+    Open=Historical_Prices['Open'].dropna()  
+    Close=Historical_Prices['Close'].dropna()
+    Low=Historical_Prices['Low'].dropna()
+    High=Historical_Prices['High'].dropna()
+    Volume=Historical_Prices['Volume'].dropna()
+    Adjusted_Close_Prices = Historical_Prices['Adj Close'].dropna()  
+    returns = np.log(Adjusted_Close_Prices/Adjusted_Close_Prices.shift(1)).dropna()
+    resampled_data=returns.resample(frequency).dropna()
+    
+    return resampled_data, Open, Close, Low, High, Volume, Adjusted_Close_Prices
+
+
 ##Systemic Risk Measures##
 
 #Journal Article: Kritzman and Li - 2010 - Skulls, Financial Turbulence, and Risk Management
