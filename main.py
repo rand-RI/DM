@@ -6,11 +6,13 @@ import pandas as pd
 import datetime as dt 
 import numpy as np
 
+
 #stage2: IMPORT DATA WITH ANY NUMBER OF PORTFOLIOS 
           #Must arrange tickers in alphabetical order
 symbols = ['^AORD','^ATX','^BFX','^BSESN','^BVSP','^FCHI','^GDAXI','^GSPC','^GSPTSE','^HSI','^JKSE','^KLSE','^KS11','^MERV','^MXX','^N225','^SSEC','^STI','^TWII'] # List all stock symbols to download in alphabetical order
 #List of symbols is a collection of Yahoo Finance World Indices
-
+Start_Date='11/1/1980'#MM,DD,YY
+End_Date='11/1/2014'#MM,DD,YY
 
 #stage3: DOWNLOAD DATA AND CALCULATE RETURN VALUES
 Start_Date='11/1/1980'#MM,DD,YY
