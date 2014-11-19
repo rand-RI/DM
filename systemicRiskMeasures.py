@@ -149,12 +149,13 @@ def Absorption_Ratio(returns):
         ev_vectors= ev_vectors_sorted[:,0:round_down_shape] #collect 1/5th the number of assets in sample
     
         #stage6: CALCULATE ABSORPTION RATIO DATA
-        variance_of_ith_eigenvector= ev_vectors.diagonal()#fetch variance of ith eigenvector
-        variance_of_jth_asset= np.array(return_covariance).diagonal() #fetch variance of jth asset
+        variance_of_ith_eigenvector= np.var(ev_vectors,axis=1).sum()
+        #variance_of_ith_eigenvector= ev_vectors.diagonal()#fetch variance of ith eigenvector
+        variance_of_jth_asset= EWMA_returns.var().sum() #fetch variance of jth asset
     
         #stage7: CONSTRUCT ABSORPTION RATIO FORMULA     
-        numerator= variance_of_ith_eigenvector.sum() #calculate the sum to n of variance of ith eigenvector
-        denominator= variance_of_jth_asset.sum()#calculate the sum to n of variance of jth asset
+        numerator= variance_of_ith_eigenvector #calculate the sum to n of variance of ith eigenvector
+        denominator= variance_of_jth_asset#calculate the sum to n of variance of jth asset
                
         Absorption_Ratio= numerator/denominator#calculate Absorption ratio
     

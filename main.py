@@ -14,12 +14,6 @@ frequency='d'
 
 #Stage 2: Pulldata
 returns= srm.pulldata(symbols, Start_Date,End_Date,frequency)[0]
-Open= srm.pulldata(symbols, Start_Date,End_Date,frequency)[1]
-Close= srm.pulldata(symbols, Start_Date,End_Date,frequency)[2]
-Low= srm.pulldata(symbols, Start_Date,End_Date,frequency)[3]
-High= srm.pulldata(symbols, Start_Date,End_Date,frequency)[4]
-Volume= srm.pulldata(symbols, Start_Date,End_Date,frequency)[5]
-Adjusted_Close= srm.pulldata(symbols, Start_Date,End_Date,frequency)[6]
 
 
 #Stage 3: Import Systemic Risk Measures and Run Pulled Data
