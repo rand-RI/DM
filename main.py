@@ -6,18 +6,13 @@ import pandas as pd
 import datetime as dt 
 import numpy as np
 
-#stage 1: Set Data
-symbols = ['^AORD','^ATX','^BFX','^BSESN','^BVSP','^FCHI','^GDAXI','^GSPC','^GSPTSE','^HSI','^JKSE','^KLSE','^KS11','^MERV','^MXX','^N225','^SSEC','^STI','^TWII'] # List all stock symbols to download in alphabetical order
-Start_Date='11/1/1980'#MM,DD,YY
-End_Date='11/1/2014'#MM,DD,YY
-frequency='d'
+#Stage 1: Load Data
+Historical_Prices= pd.load('returns')
 
 #Stage 2: Pulldata
-returns= srm.pulldata(symbols, Start_Date,End_Date,frequency)[0]
-
+returns= srm.logreturns(Historical_Prices)
 
 #Stage 3: Import Systemic Risk Measures and Run Pulled Data
-
 SRM_mahalanobis= srm.MahalanobisDist(returns)[0]#define Mahalanobis Distance Formula
 SRM_correlationsurprise= srm.Correlation_Surprise(returns)#define Correlation Surprise Score
 SRM_absorptionratio= srm.Absorption_Ratio(returns)#define Absorption Ratio
