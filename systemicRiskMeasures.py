@@ -103,6 +103,7 @@ def Correlation_Surprise(returns):
 
 
 #Journal Article: Kritzman et al. - 2011 - Principal Components as a Measure of Systemic Risk
+#http://www.mas.gov.sg/~/media/resource/legislation_guidelines/insurance/notices/GICS_Methodology.pdf
 def Absorption_Ratio(returns):
     
     #stage1: IMPORT LIBRARIES    
