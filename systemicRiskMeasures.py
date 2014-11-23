@@ -137,8 +137,8 @@ def Absorption_Ratio(returns):
     
         #Stage5: COLLECT 1/5 OF EIGENVALUES
         shape= ev_vectors_sorted.shape[0] #collect shape of ev_vector matrix
-        round_up_shape= mth.ceil(shape*0.2) #round shape to lowest integer
-        ev_vectors= ev_vectors_sorted[:,0:round_up_shape] #collect 1/5th the number of assets in sample
+        round_down_shape= mth.floor(shape*0.2) #round shape to lowest integer
+        ev_vectors= ev_vectors_sorted[:,0:round_down_shape] #collect 1/5th the number of assets in sample
     
         #stage6: CALCULATE ABSORPTION RATIO DATA
         variance_of_ith_eigenvector= np.var(ev_vectors,axis=0).sum()
