@@ -1,9 +1,8 @@
 
-def logreturns(Historical_Prices):
+def logreturns(Adjusted_Close_Prices):
 
     import numpy as np    
     
-    Adjusted_Close_Prices = Historical_Prices['Adj Close'].dropna()  
     returns = np.log(Adjusted_Close_Prices/Adjusted_Close_Prices.shift(1)).dropna()
     resampled_data=returns.resample('d').dropna()
     
@@ -14,8 +13,8 @@ def logreturns(Historical_Prices):
 
 #Journal Article: Kritzman and Li - 2010 - Skulls, Financial Turbulence, and Risk Management
 def MahalanobisDist(returns):#define MahalanobisDistance function
-    
-        
+
+#Figure 4:   
     #stage1: IMPORT LIBRARIES
     import pandas as pd#import pandas    
     import numpy as np#import numpy
@@ -41,8 +40,84 @@ def MahalanobisDist(returns):#define MahalanobisDistance function
     md_array= np.array(md) #Translate md List type to md Numpy type
     Mal_Dist=pd.DataFrame(md_array,index=dates,columns=list('R')) #Join Dataframe and Numpy array back together
     MD= Mal_Dist.resample('M')#resample monthly data by average 
-    return MD,Mal_Dist #return Mahalanobis Distance data
     
+    #collect top 75% percentile 
+    turbulent= MD.loc[MD["R"]>float(MD.quantile(.75).as_matrix())]
+    #collect below 75% percentile
+    nonturbulent= MD.loc[MD["R"]<=float(MD.quantile(.75).as_matrix())]
+    
+    
+
+    
+    
+    return MD,Mal_Dist,turbulent,nonturbulent #return Mahalanobis Distance data
+  
+def MahalanobisDist_Table1(returns):
+
+    import pandas as pd
+    import numpy as np
+    
+    
+    turbulence_score= MahalanobisDist(returns)[0]
+    
+    Normalised_Data=pd.DataFrame(index=turbulence_score.index)
+    for i in range(len(turbulence_score.columns)):
+        n=turbulence_score.columns[i]
+        m=turbulence_score[n]
+    
+        A=m.max()
+        B=m.min()
+        a=0
+        b=1
+    
+        normalised_data=[]
+        for i in range(len(turbulence_score)):
+            x= m[i]
+            normailse_value=(a+(x-A)*(b-a))/(B-A)
+
+            normalised_data.append(normailse_value)
+    
+        Normalised_Data[n]= normalised_data
+    
+    Top_75_Percentile=Normalised_Data.loc[Normalised_Data["R"]>float(Normalised_Data.quantile(.75))] #turbulent days
+    Top_10_Percentile_of_75=float(Top_75_Percentile.quantile(.1)) #10% percentile of turbulent days
+    
+    top_5=[]
+    top_10=[]
+    top_20=[]
+    index=[]
+    
+    if (Normalised_Data['R'][i]>Top_10_Percentile_of_75):
+        x=Normalised_Data['R'][i+1:i+6].mean()               #mean of 5 days after 
+        y=Normalised_Data['R'][i+1:i+11].mean()              #mean of 10 days after 
+        z=Normalised_Data['R'][i+1:i+21].mean()              #mean of 20 days after 
+        zz=Normalised_Data.index[i]                          #most turbulent days index 
+
+        top_5.append(x)
+        top_10.append(y)
+        top_20.append(z)
+        index.append(zz)
+    
+    Table_1=pd.DataFrame(index=index)
+    Table_1['5 Day']=top_5
+    Table_1['10 Day']=top_10
+    Table_1['20 Day']=top_20
+    
+    
+                   
+    return Table_1.dropna()
+    
+    #need to find data for this to work...
+    
+#def MahalanobisDist_Figure5(returns_Figure5):
+#    import pandas as pd
+#    import numpy as np    
+    
+#    log_returns= logreturns(returns_Figure5)
+#    Turbulence_index= MahalanobisDist(log_returns)
+#    return Turbulence_index
+    
+    #det equals 0???
     
 #Journal Article: Kinlaw and Turkington - 2012 - Correlation Surprise
 def Correlation_Surprise(returns):
@@ -104,7 +179,9 @@ def Correlation_Surprise(returns):
 
 #Journal Article: Kritzman et al. - 2011 - Principal Components as a Measure of Systemic Risk
 #http://www.mas.gov.sg/~/media/resource/legislation_guidelines/insurance/notices/GICS_Methodology.pdf
-def Absorption_Ratio(returns):
+def Absorption_Ratio(FamaFrench49):
+    
+    #problem with Absorption ratio is that it needs non-log return data. Once this is obtained it should take the exponential 250 day returns. After the log returns should be taken and then the 500day trailing window    
     
     #stage1: IMPORT LIBRARIES    
     import pandas as pd  #import pandas    
@@ -112,16 +189,16 @@ def Absorption_Ratio(returns):
     import math as mth #import math
     
     #stage1: GATHER DAILY TRAIL LENGTH
-    time_series_of_500days=len(returns)-500 #collect data that is outside of initial 500day window
+    time_series_of_500days=len(FamaFrench49)-500 #collect data that is outside of initial 500day window
     
     #stage2: GENERATE ABSORPTION RATIO DATA
     plotting_data=[]#create list titled plot data
         
     for i in range(time_series_of_500days):
-    
-       
+        
+              
         #stage1: CALCULATE EXPONENTIAL WEIGHTING
-        returns_500day= returns[i:i+500]#create 500 day trailing window        
+        returns_500day= FamaFrench49[i:i+500]#create 500 day trailing window        
         EWMA_returns=pd.ewma(returns_500day, halflife=250)
     
         #stage2: CALCULATE COVARIANCE MATRIX
@@ -137,7 +214,8 @@ def Absorption_Ratio(returns):
     
         #Stage5: COLLECT 1/5 OF EIGENVALUES
         shape= ev_vectors_sorted.shape[0] #collect shape of ev_vector matrix
-        round_down_shape= mth.floor(shape*0.2) #round shape to lowest integer
+        round_down_shape= mth.floor(shape*0.2)
+       #round_down_shape= mth.floor(shape*0.2) #round shape to lowest integer
         ev_vectors= ev_vectors_sorted[:,0:round_down_shape] #collect 1/5th the number of assets in sample
     
         #stage6: CALCULATE ABSORPTION RATIO DATA
@@ -157,25 +235,44 @@ def Absorption_Ratio(returns):
     
         #stage9: Plot Data
     plot_array= np.array(plotting_data)#convert plotting_data into array
-    dates= returns[500:time_series_of_500days+500].index#gather dates index over 500 day window iterations
+    dates= FamaFrench49[500:time_series_of_500days+500].index#gather dates index over 500 day window iterations
     Absorption_Ratio_daily=pd.DataFrame(plot_array,index=dates,columns=list('R'))#merge dates and Absorption ratio returns
-    Absorption_Ratio= Absorption_Ratio_daily.resample('M', how=None)#group daily data into monthly data
+    Absorption_Ratio= Absorption_Ratio_daily
+    #Absorption_Ratio=Absorption_Ratio_daily.resample('M', how=None)#group daily data into monthly data
+    
+        
+    #exhibit 7
+        
+    AR_15DAY= pd.ewma(Absorption_Ratio, span=15)
+    AR_Yearly= pd.ewma(Absorption_Ratio, span=253)
+    AR_Variance= AR_Yearly.std()
+    
+    delta_AR= (AR_15DAY-AR_Yearly)/AR_Variance
+    
+    
+    
+    
+    
     return  Absorption_Ratio #print Absorption Ratio
     
     #convert to monthly returns 
 
 #Plotting Systemic Risk Measures
-def print_systemic_Risk(systemicRiskMeasure):
+def print_systemic_Risk(systemicRiskMeasure,MSCIUS_PRICES):
     
    import matplotlib.pyplot as plt
     
    #1 MahalanobisDistance
+   #1 MahalanobisDistance
    plt.xticks(rotation=50)  #rotate x axis labels 50 degrees
    plt.xlabel('Year')#label x axis Year
    plt.ylabel('Index')#label y axis Index
-   plt.suptitle('Mahalanobis Distance Index Calculated from Yahoo Finance World Indices')#label title of graph Historical Turbulence Index Calculated from Daily Retuns of G20 Countries
-   plt.bar(systemicRiskMeasure[0].index,systemicRiskMeasure[0].values, width=2)#graph bar chart of Mahalanobis Distance
-   plt.show()    
+   plt.suptitle('Mahalanobis Distance Index')#label title of graph Historical Turbulence Index Calculated from Daily Retuns of G20 Countries
+   plt.bar(systemicRiskMeasure[0][0].index,systemicRiskMeasure[0][0].values, width=20,color='w', label='Quiet')#graph bar chart of Mahalanobis Distance
+   plt.bar(systemicRiskMeasure[0][2].index,systemicRiskMeasure[0][2].values, width=20,color='k',alpha=0.8, label='Turbulent')
+   plt.legend()
+   plt.show()
+ 
    
    
    #2Correlation Surprise
@@ -186,8 +283,8 @@ def print_systemic_Risk(systemicRiskMeasure):
    plt.xticks(rotation=50)  #rotate x axis labels 50 degrees
    plt.xlabel('Year')#label x axis Year
    plt.ylabel('Index')#label y axis Index
-   plt.suptitle('Magnitude Surprise Index Calculated from Monthly Retuns of Yahoo Finance World Indices')#label title of graph Historical Turbulence Index Calculated from Daily Retuns of G20 Countries
-   plt.bar(Magnitude_Surprise.index,Magnitude_Surprise.values, width=2)#graph bar chart of Mahalanobis Distance
+   plt.suptitle('Magnitude Surprise Index')#label title of graph Historical Turbulence Index Calculated from Daily Retuns of G20 Countries
+   plt.bar(Magnitude_Surprise.index,Magnitude_Surprise.values, width=20)#graph bar chart of Mahalanobis Distance
    plt.show()
    
        #Correlation_Surprise
@@ -195,17 +292,51 @@ def print_systemic_Risk(systemicRiskMeasure):
    plt.xticks(rotation=50)  #rotate x axis labels 50 degrees
    plt.xlabel('Year')#label x axis Year
    plt.ylabel('Index')#label y axis Index
-   plt.suptitle('Correlation Surprise Index Calculated from Monthly Retuns of Yahoo Finance World Indices')#label title of graph Historical Turbulence Index Calculated from Daily Retuns of G20 Countries
-   plt.bar(Correlation_Surprise.index,Correlation_Surprise.values, width=2)#graph bar chart of Mahalanobis Distance
+   plt.suptitle('Correlation Surprise Index')#label title of graph Historical Turbulence Index Calculated from Daily Retuns of G20 Countries
+   plt.bar(Correlation_Surprise.index,Correlation_Surprise.values, width=20)#graph bar chart of Mahalanobis Distance
    plt.show()
    
    
    
    #3Absorption Ratio
-   plt.xticks(rotation=50)  #rotate x axis labels 50 degrees
+   
+   fig=plt.figure()
+    
+   ax1= fig.add_subplot(2,1,1, axisbg='white')
+   plt.suptitle('Absorption Ratio vs US Stock Prices')   
+   plt.xticks(rotation=50)
    plt.xlabel('Year')#label x axis Year
-   plt.ylabel('Index')#label y axis Index
-   plt.suptitle('Absorption Ratio Index Calculated from Monthly Retuns of Yahoo Finance World Indices')#label title of graph Absorption Ratio
-   plt.plot(systemicRiskMeasure[2].index,systemicRiskMeasure[2].values)#graph line chart of Absorption Ratio
+   ax1.set_ylabel('MSCI USA Price', color='b')
+   x1,x2,y1,y2 = plt.axis()
+   plt.axis((x1,x2,0,1600))
+   ax1.plot(MSCIUS_PRICES.index[500:3152],MSCIUS_PRICES.values[500:3152])
+
+    
+   ax2= ax1.twinx()
+   #plt.ylabel('Index')#label y axis Index
+   x1,x2,y1,y2 = plt.axis()
+   plt.axis((x1,x2,0,2))
+   ax2.plot(systemicRiskMeasure[2].index,systemicRiskMeasure[2].values, 'g')
+   ax2.set_ylabel('Absorption Ratio Index', color='g')
+
    plt.show()
+   
+   
+   
+   
+
+   
+   
+   
+   
+   
+   
+   
+   
+   #plt.xticks(rotation=50)  #rotate x axis labels 50 degrees
+   #plt.xlabel('Year')#label x axis Year
+   #plt.ylabel('Index')#label y axis Index
+   #plt.suptitle('Absorption Ratio Index Calculated from Monthly Retuns of Yahoo Finance World Indices')#label title of graph Absorption Ratio
+   #plt.plot(systemicRiskMeasure[2].index,systemicRiskMeasure[2].values)#graph line chart of Absorption Ratio
+   #plt.show()
    
