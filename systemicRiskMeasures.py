@@ -1,4 +1,3 @@
-
 def logreturns(Adjusted_Close_Prices):
 
     import numpy as np    
@@ -46,16 +45,14 @@ def MahalanobisDist(returns):#define MahalanobisDistance function
     #collect below 75% percentile
     nonturbulent= MD.loc[MD["R"]<=float(MD.quantile(.75).as_matrix())]
     
-    
-
-    
-    
     return MD,Mal_Dist,turbulent,nonturbulent #return Mahalanobis Distance data
   
+
 def MahalanobisDist_Table1(returns):
 
     import pandas as pd
     import numpy as np
+    import matplotlib.pyplot as plt
     
     
     turbulence_score= MahalanobisDist(returns)[0]
@@ -73,30 +70,33 @@ def MahalanobisDist_Table1(returns):
         normalised_data=[]
         for i in range(len(turbulence_score)):
             x= m[i]
-            normailse_value=(a+(x-A)*(b-a))/(B-A)
+            normailse_value=(x-B)/(A-B)            
+            #normailse_value=(a+(x-A)*(b-a))/(B-A)
 
             normalised_data.append(normailse_value)
     
         Normalised_Data[n]= normalised_data
     
-    Top_75_Percentile=Normalised_Data.loc[Normalised_Data["R"]>float(Normalised_Data.quantile(.75))] #turbulent days
-    Top_10_Percentile_of_75=float(Top_75_Percentile.quantile(.1)) #10% percentile of turbulent days
-    
     top_5=[]
     top_10=[]
     top_20=[]
-    index=[]
+    index=[]    
     
-    if (Normalised_Data['R'][i]>Top_10_Percentile_of_75):
-        x=Normalised_Data['R'][i+1:i+6].mean()               #mean of 5 days after 
-        y=Normalised_Data['R'][i+1:i+11].mean()              #mean of 10 days after 
-        z=Normalised_Data['R'][i+1:i+21].mean()              #mean of 20 days after 
-        zz=Normalised_Data.index[i]                          #most turbulent days index 
+        
+    for i in range(len(Normalised_Data)):
+        Top_75_Percentile=Normalised_Data.loc[Normalised_Data["R"]>float(Normalised_Data.quantile(.75))] #turbulent days
+        Top_10_Percentile_of_75=float(Top_75_Percentile.quantile(.1)) #10% percentile of turbulent days
 
-        top_5.append(x)
-        top_10.append(y)
-        top_20.append(z)
-        index.append(zz)
+        if (Normalised_Data['R'][i]>Top_10_Percentile_of_75):
+            x=Normalised_Data['R'][i+1:i+6].mean()               #mean of 5 days after 
+            y=Normalised_Data['R'][i+1:i+11].mean()              #mean of 10 days after 
+            z=Normalised_Data['R'][i+1:i+21].mean()              #mean of 20 days after 
+            zz=Normalised_Data.index[i]                          #most turbulent days index 
+
+            top_5.append(x)
+            top_10.append(y)
+            top_20.append(z)
+            index.append(zz)
     
     Table_1=pd.DataFrame(index=index)
     Table_1['5 Day']=top_5
@@ -104,20 +104,41 @@ def MahalanobisDist_Table1(returns):
     Table_1['20 Day']=top_20
     
     
-                   
+    Table_1.plot(kind='bar', title='Mahalanobis Distance Table 1')
+    plt.show()  
+                     
     return Table_1.dropna()
     
-    #need to find data for this to work...
+def MahalanobisDist_Table2(returns): 
     
-#def MahalanobisDist_Figure5(returns_Figure5):
-#    import pandas as pd
-#    import numpy as np    
+    #Conservative Portfolio
+    WeightsC=[.2286, .1659, .4995, .0385, .0675, .0]
+    Expected_returnC= (returns.sum() * WeightsC).sum()
+    Full_sample_riskC= np.diagonal((returns*WeightsC).cov()).sum()
+
+
+
+    #Moderate Portfolio
+    WeightsM=[.3523, .2422, .3281, .0259, .0516, .0]
+    Expected_returnM= (returns.sum() * WeightsM).sum()
+    Full_sample_riskM= np.diagonal((returns*WeightsM).cov()).sum()
+
+
+    #Aggressive Portfolio
+    WeightsA=[.4815, .3219, .1489, .0128, .0349, .0]
+    Expected_returnA= (returns.sum() * WeightsA).sum()
+    Full_sample_riskA= np.diagonal((returns*WeightsA).cov()).sum()
+
+    return     
     
-#    log_returns= logreturns(returns_Figure5)
-#    Turbulence_index= MahalanobisDist(log_returns)
-#    return Turbulence_index
+     
+def MahalanobisDist_Table3(returns): 
     
-    #det equals 0???
+    
+
+    return     
+    
+    
     
 #Journal Article: Kinlaw and Turkington - 2012 - Correlation Surprise
 def Correlation_Surprise(returns):
