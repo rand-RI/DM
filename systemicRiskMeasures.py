@@ -107,7 +107,7 @@ def MahalanobisDist_Table1(returns):
     Table_1.plot(kind='bar', title='Mahalanobis Distance Table 1')
     plt.show()  
                      
-    return Table_1.dropna()
+    return Table_1.dropna(),Top_75_Percentile
     
 def MahalanobisDist_Table2(returns): 
     
@@ -134,9 +134,58 @@ def MahalanobisDist_Table2(returns):
      
 def MahalanobisDist_Table3(returns): 
     
-    
+    #VaR for Full Sample, End of Horizon
+    WeightsC=[.2286, .1659, .4995, .0385, .0675, .0]
+    Expected_meanC= (returns.mean() * WeightsC).mean()
+    Full_sample_riskC= np.sqrt(np.diagonal((returns*WeightsC).cov()).sum())
+    VaRC= -Expected_meanC + 2.575*Full_sample_riskC
 
-    return     
+    WeightsM=[.3523, .2422, .3281, .0259, .0516, .0]   
+    Expected_meanM= (returns.mean() * WeightsC).mean()
+    Full_sample_riskM= np.sqrt(np.diagonal((returns*WeightsM).cov()).sum())
+    VaRM= -Expected_meanM + 2.575*Full_sample_riskM
+    
+    WeightsA=[.4815, .3219, .1489, .0128, .0349, .0]
+    Expected_meanA= (returns.mean() * WeightsA).mean()
+    Full_sample_riskA= np.sqrt(np.diagonal((returns*WeightsA).cov()).sum())
+    VaRA= -Expected_meanA + 2.575*Full_sample_riskA
+    
+    
+    
+    #Var for Turbulent periods
+    returnss=[]
+    
+    # fix return values
+    
+    returns_turbulent= MahalanobisDist_Table1(returns)[1]
+    Expected_meanC= (returns_turbulent.mean() * WeightsC).mean()
+    Full_sample_riskC= np.sqrt(np.diagonal((*****returns}}}}}}}}}}*WeightsC).cov()).sum())
+    VaRC= -Expected_meanC + 2.575*Full_sample_riskC
+
+
+
+
+    returnss=[]
+    returns_turbulent= srm.MahalanobisDist_Table1(returns)[1]
+    for i in range(len(returns_turbulent)): 
+        x=returns_turbulent.index[i]
+        
+        for j in range(len(returns)):
+            if x==returns.index[j]:
+                y=returns[i:i+1]
+                returnss.append(y)
+    
+    
+    
+    x=pd.DataFrame()
+    x.loc[returnss[0].index[0]]=returns[0]
+   
+    
+    
+    
+    
+    
+     return     
     
     
     

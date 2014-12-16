@@ -30,7 +30,7 @@ MSCIUS_PRICES= pd.load('MSCIUSA') #MSCI US Index daily prices
 
     #Mahalanobis Distance
 SRM_mahalanobis= srm.MahalanobisDist(returns)#define Mahalanobis Distance Formula
-Table_1= srm.MahalanobisDist_Table1(returns)
+Table_1= srm.MahalanobisDist_Table1(returns)[0]
 
     #Correlation Surprise
 SRM_correlationsurprise= srm.Correlation_Surprise(returns)#define Correlation Surprise Score
