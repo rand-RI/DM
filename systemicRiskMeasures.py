@@ -48,12 +48,13 @@ def MahalanobisDist(returns):#define MahalanobisDistance function
     return MD,Mal_Dist,turbulent,nonturbulent #return Mahalanobis Distance data
   
 
-def MahalanobisDist_Table1(returns):
+def MahalanobisDist_Table1(returns): #have used returns and not returns_Figure5 as there is a singlur matrix error with linalg.inv(returns_Figure5.cov()) need to fix
 
     import pandas as pd
     import numpy as np
     import matplotlib.pyplot as plt
     
+    #need to add an interating for_loop here for each column of the dataframe 
     
     turbulence_score= MahalanobisDist(returns)[0]
     
@@ -75,7 +76,7 @@ def MahalanobisDist_Table1(returns):
 
             normalised_data.append(normailse_value)
     
-        Normalised_Data[n]= normalised_data
+        Normalised_Data[n]= normalised_data #normalised data between 0-1
     
     top_5=[]
     top_10=[]
@@ -85,7 +86,7 @@ def MahalanobisDist_Table1(returns):
         
     for i in range(len(Normalised_Data)):
         Top_75_Percentile=Normalised_Data.loc[Normalised_Data["R"]>float(Normalised_Data.quantile(.75))] #turbulent days
-        Top_10_Percentile_of_75=float(Top_75_Percentile.quantile(.1)) #10% percentile of turbulent days
+        Top_10_Percentile_of_75=float(Top_75_Percentile.quantile(.1)) #10% percentile of turbulent days / 10th Percentile Threshold
 
         if (Normalised_Data['R'][i]>Top_10_Percentile_of_75):
             x=Normalised_Data['R'][i+1:i+6].mean()               #mean of 5 days after 
@@ -98,37 +99,57 @@ def MahalanobisDist_Table1(returns):
             top_20.append(z)
             index.append(zz)
     
-    Table_1=pd.DataFrame(index=index)
+    Table_1=pd.DataFrame(index=index)  #create dataframe of average turbulence days
     Table_1['5 Day']=top_5
     Table_1['10 Day']=top_10
     Table_1['20 Day']=top_20
     
+    Table_1.sum()
     
     Table_1.plot(kind='bar', title='Mahalanobis Distance Table 1')
     plt.show()  
                      
     return Table_1.dropna(),Top_75_Percentile
+    #need to find out how to calculate the percentile ranks
     
-def MahalanobisDist_Table2(returns): 
+def MahalanobisDist_Table2(returns): #again need to  change returns due to singular matrix error in returns_figure5
+     
+    
+    turbulent_returns=pd.DataFrame()
+    turbulent_period= srm.MahalanobisDist_Table1(returns)[1]
+    for i in range(len(turbulent_period)): 
+        x=turbulent_period.index[i]
+        
+        
+        
+        for j in range(len(returns)):
+            if x==returns.index[j]:
+                y=returns[j:j+1]
+                turbulent_returns= turbulent_returns.append(y)    
+    
+    
     
     #Conservative Portfolio
     WeightsC=[.2286, .1659, .4995, .0385, .0675, .0]
     Expected_returnC= (returns.sum() * WeightsC).sum()
-    Full_sample_riskC= np.diagonal((returns*WeightsC).cov()).sum()
-
+    Full_sample_riskC= np.sqrt(np.diagonal((returns*WeightsC).cov()).sum())
+    turbulent_riskC= np.sqrt(np.diagonal((turbulent_returns*WeightsC).cov()).sum())
 
 
     #Moderate Portfolio
     WeightsM=[.3523, .2422, .3281, .0259, .0516, .0]
     Expected_returnM= (returns.sum() * WeightsM).sum()
-    Full_sample_riskM= np.diagonal((returns*WeightsM).cov()).sum()
-
+    Full_sample_riskM= np.sqrt(np.diagonal((returns*WeightsM).cov()).sum())
+    turbulent_riskC= np.sqrt(np.diagonal((turbulent_returns*Weightsm).cov()).sum())
 
     #Aggressive Portfolio
     WeightsA=[.4815, .3219, .1489, .0128, .0349, .0]
     Expected_returnA= (returns.sum() * WeightsA).sum()
-    Full_sample_riskA= np.diagonal((returns*WeightsA).cov()).sum()
-
+    Full_sample_riskA= np.sqrt(np.diagonal((returns*WeightsA).cov()).sum())
+    turbulent_riskC= np.sqrt(np.diagonal((turbulent_returns*Weightsa).cov()).sum())
+    
+    
+    #CREATE TABLE 
     return     
     
      
@@ -152,40 +173,64 @@ def MahalanobisDist_Table3(returns):
     
     
     
-    #Var for Turbulent periods
-    returnss=[]
-    
-    # fix return values
-    
-    returns_turbulent= MahalanobisDist_Table1(returns)[1]
-    Expected_meanC= (returns_turbulent.mean() * WeightsC).mean()
-    Full_sample_riskC= np.sqrt(np.diagonal((*****returns}}}}}}}}}}*WeightsC).cov()).sum())
-    VaRC= -Expected_meanC + 2.575*Full_sample_riskC
-
-
-
-
-    returnss=[]
-    returns_turbulent= srm.MahalanobisDist_Table1(returns)[1]
-    for i in range(len(returns_turbulent)): 
-        x=returns_turbulent.index[i]
+    #Var for Turbulent periods    
+    turbulent_returns=pd.DataFrame()
+    turbulent_period= srm.MahalanobisDist_Table1(returns)[1]
+    for i in range(len(turbulent_period)): 
+        x=turbulent_period.index[i]
+        
+        
         
         for j in range(len(returns)):
             if x==returns.index[j]:
-                y=returns[i:i+1]
-                returnss.append(y)
+                y=returns[j:j+1]
+                turbulent_returns= turbulent_returns.append(y)
+    
+    #fix the name of C, M and A as it is repeated frmo above
+    WeightsC=[.2286, .1659, .4995, .0385, .0675, .0]
+    Expected_meanC= (turbulent_returns.mean() * WeightsC).mean()
+    Full_sample_riskC= np.sqrt(np.diagonal((turbulent_returns*WeightsC).cov()).sum())
+    VaRC= -Expected_meanC + 2.575*Full_sample_riskC
+
+    WeightsM=[.3523, .2422, .3281, .0259, .0516, .0]   
+    Expected_meanM= (turbulent_returns.mean() * WeightsC).mean()
+    Full_sample_riskM= np.sqrt(np.diagonal((turbulent_returns*WeightsM).cov()).sum())
+    VaRM= -Expected_meanM + 2.575*Full_sample_riskM
+    
+    WeightsA=[.4815, .3219, .1489, .0128, .0349, .0]
+    Expected_meanA= (turbulent_returns.mean() * WeightsA).mean()
+    Full_sample_riskA= np.sqrt(np.diagonal((turbulent_returns*WeightsA).cov()).sum())
+    VaRA= -Expected_meanA + 2.575*Full_sample_riskA
+         
+     #need to calculate the Maximum loss and maximum drawdown
+                 
+    return     
     
     
+def MahalanobisDist_Table4(returns): 
     
-    x=pd.DataFrame()
-    x.loc[returnss[0].index[0]]=returns[0]
-   
+    Weights=[0.1,0.6,0.3]
+    market_portfolio= returns[['TIP','^GSPC','^TYX']] * Weights
     
+    #what are equilbirum returns?
+
+        
+    return     
     
+def MahalanobisDist_Table5(returns): 
     
+    Weights=[0.1,0.6,0.3]
+    market_portfolio= returns[['TIP','^GSPC','^TYX']] * Weights
     
+    #what are equilbirum returns?
+
+        
+    return    
+
+def MahalanobisDist_Table6(returns): 
     
-     return     
+            
+    return     
     
     
     
@@ -200,8 +245,7 @@ def Correlation_Surprise(returns):
      
     #Stage 1: GENERATE TURBULENCE SCORE
     TS= MahalanobisDist(returns)[1]#calculate Turbulence Score from Mahalanobis Distance Function
-    
-    
+        
          #Step2: CALCULATE MAGNITUDE SURPRISE   
     
     #Stage1: CALCULATE COVARIANCE MATRIX
@@ -242,10 +286,118 @@ def Correlation_Surprise(returns):
     MS_sum=Mag_Sur.resample('M',how=sum)
     Correlation_Surprise_monthly=resample_Correlation_monthly.divide(MS_sum)
     
-    return  Correlation_Surprise_monthly, MS
+    return  Correlation_Surprise_monthly, MS, Corre_Sur, Mag_Sur
     
 
 
+
+def Correlation_Surprise_Table_Exhbit5(SRM_correlationsurprise):
+    import pandas as pd
+    import numpy as np
+    
+       
+#Step 1:
+    Top_20_Percentile= SRM_correlationsurprise[3].loc[SRM_correlationsurprise[3]["R"]>float(SRM_correlationsurprise[3].quantile(.75))] #turbulent days
+    
+#Step2    
+    CorSurp_20_Percentile_Mag=pd.DataFrame() # create Correlation DataFrame for Top 20% Magnitude Surprise dates
+    MagSur_20= Top_20_Percentile    # Top 20% Magnitude Surprise
+    for i in range(len(MagSur_20)): 
+        x=MagSur_20.index[i]
+               
+        for j in range(len(SRM_correlationsurprise[2])):
+            if x==SRM_correlationsurprise[2].index[j]: #If Top 20% Magnitude Surprise Dates equals the Correlation Surprise Data
+                y=SRM_correlationsurprise[2][j:j+1]    # Grab the index and value data for previous
+                CorSurp_20_Percentile_Mag= CorSurp_20_Percentile_Mag.append(y) #append to Dataframe
+    
+    Corr_greater_1= CorSurp_20_Percentile_Mag.loc[CorSurp_20_Percentile_Mag["R"]>float(1)] #Dates with Correlation Surprise greater than 1
+    Corr_less_1= CorSurp_20_Percentile_Mag.loc[CorSurp_20_Percentile_Mag["R"]<float(1)]     #Dates with Correlation Surprise less than 1
+    
+ #Step3
+    #Average Mag
+    Average_MagSur_20= Top_20_Percentile.mean()  #Generate Average Magnitude Surprise values for Top 20%
+    
+    #Average Mag Corr>1
+    MagSur_20_Greater_1 =pd.DataFrame()   #Create Magnitude Surprise with Correlation greater than 1 DataFrame
+    MagSur_20= Top_20_Percentile
+    for i in range(len(MagSur_20)): 
+        x=MagSur_20.index[i]
+               
+        for j in range(len(Corr_greater_1)):
+            if x==Corr_greater_1.index[j]:   # If Magnitude Surprise index equals the Correlation Surprise >1 index 
+                y=MagSur_20[i:i+1]           #Grab Magnitude Surprise value
+                MagSur_20_Greater_1= MagSur_20_Greater_1.append(y)  #Append Mag & Corr>1
+     
+    Average_MagSur_20_Greater_1= MagSur_20_Greater_1.mean()  #Generate Mean
+               
+    #Average Mag Corr<1
+    MagSur_20_Less_1 =pd.DataFrame()
+    MagSur_20= Top_20_Percentile
+    for i in range(len(MagSur_20)): 
+        x=MagSur_20.index[i]
+               
+        for j in range(len(Corr_less_1)):  
+            if x==Corr_less_1.index[j]:   # If Magnitude Surprise index equals the Correlation Surprise <1 index
+                y=MagSur_20[j:j+1]        #Grab Magnitude Surprise value
+                MagSur_20_Less_1= MagSur_20_Less_1.append(y)  #Append Mag & Corr>1
+
+    Average_MagSur_20_Less_1= MagSur_20_Less_1.mean()  #Generate Mean
+    
+    return Top_20_Percentile, Average_MagSur_20, Average_MagSur_20_Greater_1, Average_MagSur_20_Less_1, MagSur_20_Greater_1, MagSur_20_Less_1
+    
+
+def Correlation_Surprise_Table_Exhbit6(SRM_correlationsurprise, Correlation_Surprise_Exhibit_5):
+    
+    import pandas as pd
+    import numpy as np 
+    
+    #Next day magnitude surprise
+    Next_day_MagSur= pd.DataFrame()
+    MagSur_20= Correlation_Surprise_Exhibit_5[0]
+    for i in range(len(MagSur_20)): 
+        x= MagSur_20.index[i]
+               
+        for j in range(len(SRM_correlationsurprise[3])):
+            if x== SRM_correlationsurprise[3].index[j]:
+                y= SRM_correlationsurprise[3][j+1:j+2]
+                Next_day_MagSur= Next_day_MagSur.append(y)
+    
+    Average_Next_day_MagSur= Next_day_MagSur.mean()
+    
+    #Next day magnitude surprise with Correlation Surprise greater than 1
+    Next_day_MagSur_Greater_1= pd.DataFrame()
+    MagSur_20_Greater_1= Correlation_Surprise_Exhibit_5[4]
+    for i in range(len(MagSur_20_Greater_1)): 
+        x= MagSur_20_Greater_1.index[i]
+               
+        for j in range(len(SRM_correlationsurprise[3])):
+            if x== SRM_correlationsurprise[3].index[j]:
+                y= SRM_correlationsurprise[3][j+1:j+2]
+                Next_day_MagSur_Greater_1= Next_day_MagSur_Greater_1.append(y)
+    
+    Average_Next_day_MagSur_Greater_1= Next_day_MagSur_Greater_1.mean()
+    
+    #Next day magnitude surprise with Correlation Surprise less than 1
+    Next_day_MagSur_Less_1= pd.DataFrame()
+    MagSur_20_Less_1= Correlation_Surprise_Exhibit_5[5]
+    for i in range(len(MagSur_20_Less_1)): 
+        x= MagSur_20_Less_1.index[i]
+               
+        for j in range(len(SRM_correlationsurprise[3])):
+            if x== SRM_correlationsurprise[3].index[j]:
+                y= SRM_correlationsurprise[3][j+1:j+2]
+                Next_day_MagSur_Less_1= Next_day_MagSur_Less_1.append(y)
+    
+    Average_Next_day_MagSur_Less_1= Next_day_MagSur_Less_1.mean()
+    
+    
+    return  Average_Next_day_MagSur,  Average_Next_day_MagSur_Greater_1,  Average_Next_day_MagSur_Less_1
+        
+
+def Correlation_Surprise_Table_Exhbit7(): 
+    
+            
+    return    
 
 #Journal Article: Kritzman et al. - 2011 - Principal Components as a Measure of Systemic Risk
 #http://www.mas.gov.sg/~/media/resource/legislation_guidelines/insurance/notices/GICS_Methodology.pdf
@@ -310,22 +462,24 @@ def Absorption_Ratio(FamaFrench49):
     Absorption_Ratio= Absorption_Ratio_daily
     #Absorption_Ratio=Absorption_Ratio_daily.resample('M', how=None)#group daily data into monthly data
     
-        
-    #exhibit 7
-        
-    AR_15DAY= pd.ewma(Absorption_Ratio, span=15)
-    AR_Yearly= pd.ewma(Absorption_Ratio, span=253)
+    return  Absorption_Ratio #print Absorption Ratio
+    
+   
+   
+def Absorption_Ratio_Standardised_Shift(SRM_absorptionratio):    
+    
+    import pandas as pd
+           
+    AR_15DAY= pd.ewma(SRM_absorptionratio, span=15)
+    AR_Yearly= pd.ewma(SRM_absorptionratio, span=253)
     AR_Variance= AR_Yearly.std()
     
     delta_AR= (AR_15DAY-AR_Yearly)/AR_Variance
     
-    
-    
-    
-    
-    return  Absorption_Ratio #print Absorption Ratio
-    
-    #convert to monthly returns 
+   
+    return delta_AR
+
+
 
 #Plotting Systemic Risk Measures
 def print_systemic_Risk(systemicRiskMeasure,MSCIUS_PRICES):
@@ -346,7 +500,7 @@ def print_systemic_Risk(systemicRiskMeasure,MSCIUS_PRICES):
    
    
    #2Correlation Surprise
-   Correlation_Surprise= systemicRiskMeasure[1][0] #gather Correlation surprise array
+   Correlation_Surprise=systemicRiskMeasure[1][0] #gather Correlation surprise array
    Magnitude_Surprise= systemicRiskMeasure[1][1]#gather turbulence score array
    
         #Magnitude Suprise   

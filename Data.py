@@ -1,6 +1,7 @@
 import pandas.io.data as pdio      #import pandas.io.data library
 import numpy as np
 
+        #MahalanoBis Distance
 symbols = ['^GSPC','EFA','^TYX','TIP','VNQ','^DJC'] 
 #['^GSPC','^NYA','^IXIC','^GSPC','^TYX','^DJC']
 #['^AORD','^ATX','^BFX','^BSESN','^BVSP','^FCHI','^GDAXI','^GSPC','^GSPTSE','^HSI','^JKSE','^KLSE','^KS11','^MERV','^MXX','^N225','^SSEC','^STI','^TWII'] # List all stock symbols to download in alphabetical order
@@ -25,3 +26,19 @@ Figure5['Small-Large']=Historical_Pricess_closed['^RUT'].values-Historical_Price
 Figure5['Growth-Value']=Historical_Pricess_closed['IWF'].values-Historical_Pricess_closed['IWD'].values
 Figure5['Hedge Funds']=Historical_Pricess_closed['HDG'].values
 Figure5.save('returnsMD_Figure5')
+
+
+        #Correlation Surprise
+#Exhibit 3: Times series data
+import pandas.io.data as web
+jpy = web.DataReader('DEXJPUS', 'fred')
+
+
+
+
+
+#Currencies=pd.DataFrame(index=)
+
+
+
+
