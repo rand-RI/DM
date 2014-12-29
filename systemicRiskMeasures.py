@@ -1,115 +1,118 @@
-def logreturns(Adjusted_Close_Prices):
 
+def logreturns(Adjusted_Close_Prices):    #GENERATED LOGARITHMIC RETURNS
+    
     import numpy as np    
+        
+    returns = np.log(Adjusted_Close_Prices/Adjusted_Close_Prices.shift(1)).dropna()  #Generate log returns
+    resampled_data=returns.resample('d').dropna()                                    #Choose if Daily, Monthly, Yearly(ect) dataframe is required
     
-    returns = np.log(Adjusted_Close_Prices/Adjusted_Close_Prices.shift(1)).dropna()
-    resampled_data=returns.resample('d').dropna()
-    
-    return resampled_data
+    return   resampled_data                                                          #Return Log returns
 
 
-##Systemic Risk Measures##
+                ##Systemic Risk Measures##
 
 #Journal Article: Kritzman and Li - 2010 - Skulls, Financial Turbulence, and Risk Management
 def MahalanobisDist(returns):#define MahalanobisDistance function
-
-#Figure 4:   
-    #stage1: IMPORT LIBRARIES
-    import pandas as pd#import pandas    
-    import numpy as np#import numpy
-    
-    #stage2: CALCULATE COVARIANCE MATRIX
-    return_covariance= returns.cov() #Generate Covariance Matrix for historical returns
-    return_inverse= np.linalg.inv(return_covariance) #Generate Inverse Matrix for historical returns
-
-    #stage3: CALCULATE THE DIFFERENCE BETWEEN THE SAMPLE MEAN AND HISTORICAL DATA
-    means= returns.mean()#Calculate historical returns means for each asset
-    diff_means= returns.subtract(means) #Calculate difference between historical return means and the historical returns
-
-    #stage4: SPLIT VALUES FROM INDEX DATES
-    values=diff_means.values #Split historical returns from Dataframe
-    dates= diff_means.index #Split Dataframe from historical returns
-
-    #stage5: BUILD FORMULA
-    md = [] #Define Mahalanobis Distance as md
-    for i in range(len(values)):
-        md.append((np.dot(np.dot(np.transpose(values[i]),return_inverse),values[i])))  #Construct Mahalanobis Distance formula
-        
-    #stage6: CONVERT LIST Type TO DATAFRAME Type
-    md_array= np.array(md) #Translate md List type to md Numpy type
-    Mal_Dist=pd.DataFrame(md_array,index=dates,columns=list('R')) #Join Dataframe and Numpy array back together
-    MD= Mal_Dist.resample('M')#resample monthly data by average 
-    
-    #collect top 75% percentile 
-    turbulent= MD.loc[MD["R"]>float(MD.quantile(.75).as_matrix())]
-    #collect below 75% percentile
-    nonturbulent= MD.loc[MD["R"]<=float(MD.quantile(.75).as_matrix())]
-    
-    return MD,Mal_Dist,turbulent,nonturbulent #return Mahalanobis Distance data
   
+        #stage1: IMPORT LIBRARIES
+    import pandas as pd                                                              #import pandas    
+    import numpy as np                                                               #import numpy
+    
+        #stage2: CALCULATE COVARIANCE MATRIX
+    return_covariance= returns.cov()                                                 #Generate covariance matrix for historical returns
+    return_inverse= np.linalg.inv(return_covariance)                                 #Generate inverse covariance matrix for historical returns
+
+        #stage3: CALCULATE THE DIFFERENCE BETWEEN SAMPLE MEAN AND HISTORICAL DATA
+    means= returns.mean()                                                            #Calculate means for each asset's historical returns 
+    diff_means= returns.subtract(means)                                              #Calculate difference between historical return means and the historical returns
+
+        #stage4: SPLIT VALUES FROM INDEX DATES
+    values=diff_means.values                                                         #Split historical returns from Dataframe index
+    dates= diff_means.index                                                          #Split Dataframe index from historical returns
+
+        #stage5: BUILD FORMULA
+    md = []                                                                          #Define Mahalanobis Distance as md and create empty array for iteration
+    for i in range(len(values)):
+        md.append((np.dot(np.dot(np.transpose(values[i]),return_inverse),values[i])))#Construct Mahalanobis Distance formula and iterate over empty md array
+        
+        #stage6: CONVERT LIST TYPE TO DATAFRAME TYPE
+    md_array= np.array(md)                                                           #Translate md List type to md Numpy Array type in order to join values into a Dataframe
+    Mal_Dist=pd.DataFrame(md_array,index=dates,columns=list('R'))                    #Join Dataframe index and Numpy array back together
+    MD= Mal_Dist.resample('M')                                                       #resample data by average either as daily, monthly, yearly(ect.) 
+    
+        #stage7: COLLECT TOP 75% PERCENTILE(Turbulent returns) AND BOTTOM 75% PERCENTILE(non-Turbulent returns) 
+    turbulent= MD.loc[MD["R"]>float(MD.quantile(.75).as_matrix())]                   #Calculate top 75% percentile of Malanobis Distance returns (Turbulent returns)
+    nonturbulent= MD.loc[MD["R"]<=float(MD.quantile(.75).as_matrix())]               #Calculate bottom 75% percentile of Malanobis Distance (non-Turbulent returns)
+    
+    return    MD, Mal_Dist, turbulent, nonturbulent                                   #Return Malanobis Distance resampled returns, Malanobis Distance daily returns,  Turbulent returns and non-Turbulent returns
+  
+
 
 def MahalanobisDist_Table1(returns): #have used returns and not returns_Figure5 as there is a singlur matrix error with linalg.inv(returns_Figure5.cov()) need to fix
 
+        #stage 1: IMPORT LIBRARIES 
     import pandas as pd
-    import numpy as np
     import matplotlib.pyplot as plt
     
     #need to add an interating for_loop here for each column of the dataframe 
+       
+       #stage 2: IMPORT MALANOBIS DISTANCE RETURNS
+    turbulence_score= MahalanobisDist(returns)[0]                                   #Collect Malanobis Distance resampled returns
     
-    turbulence_score= MahalanobisDist(returns)[0]
+       #stage 3: NORMALISE MALANOBIS DISTANCE RETURNS
+    Normalised_Data=pd.DataFrame(index=turbulence_score.index)                      #Create open Dataframe with identical index as Malanobis Distance resampled returns 
     
-    Normalised_Data=pd.DataFrame(index=turbulence_score.index)
-    for i in range(len(turbulence_score.columns)):
-        n=turbulence_score.columns[i]
-        m=turbulence_score[n]
+    for i in range(len(turbulence_score.columns)):                                  #Iterate over range of total number of columns in Malanobis Distance resampled returns dataframe                       
+        n=turbulence_score.columns[i]                                               #Iterate over Malanobis Distance resampled returns column titles
+        m=turbulence_score[n]                                                       #Iterate over columns
     
-        A=m.max()
-        B=m.min()
-        a=0
-        b=1
-    
-        normalised_data=[]
-        for i in range(len(turbulence_score)):
-            x= m[i]
-            normailse_value=(x-B)/(A-B)            
-            #normailse_value=(a+(x-A)*(b-a))/(B-A)
-
-            normalised_data.append(normailse_value)
-    
-        Normalised_Data[n]= normalised_data #normalised data between 0-1
-    
-    top_5=[]
-    top_10=[]
-    top_20=[]
-    index=[]    
-    
+        A=m.max()                                                                   #Calculate maximum value for each column
+        B=m.min()                                                                   #Calculate minimum value for each column
+        a,b=[0,1]                                                                   #Set Normalise Range with a=0 and b=1
         
-    for i in range(len(Normalised_Data)):
-        Top_75_Percentile=Normalised_Data.loc[Normalised_Data["R"]>float(Normalised_Data.quantile(.75))] #turbulent days
-        Top_10_Percentile_of_75=float(Top_75_Percentile.quantile(.1)) #10% percentile of turbulent days / 10th Percentile Threshold
+        normalised_data=[]                                                          #Create Normalised Data empty array
+        for i in range(len(turbulence_score)):                                      #Iterate over range of Malanobis Distance resampled returns index
+            x= m[i]                                                                 #Let x equal the iterated row of previously itereated column
+            normailse_value=(x-B)/(A-B)                                             #Calculate normalised return
+            #normailse_value=(a+(x-A)*(b-a))/(B-A)
+            normalised_data.append(normailse_value)                                 #Append normalised return with empty array
+    
+        Normalised_Data[n]= normalised_data #normalised data between 0-1            #Append normalised returns empty array to DataFrame
+    
+        #stage 4: GENERATE TABLE 1 DATA
+    top_5=[]                                                                        #Create emply array of Top 5 days
+    top_10=[]                                                                       #Create emply array of Top 10 days
+    top_20=[]                                                                       #Create emply array of Top 20 days
+    index=[]                                                                        #Create emply array of index
+    
+    for i in range(len(Normalised_Data)):                                           #Iterate over Normalised Data index
+    
+        Top_75_Percentile=Normalised_Data.loc[Normalised_Data["R"]>float(Normalised_Data.quantile(.75))] #Calculate Turbulent Days of Normalised returns
+        Top_10_Percentile_of_75=float(Top_75_Percentile.quantile(.1))               #10% percentile of turbulent days / 10th Percentile Threshold
 
-        if (Normalised_Data['R'][i]>Top_10_Percentile_of_75):
-            x=Normalised_Data['R'][i+1:i+6].mean()               #mean of 5 days after 
-            y=Normalised_Data['R'][i+1:i+11].mean()              #mean of 10 days after 
-            z=Normalised_Data['R'][i+1:i+21].mean()              #mean of 20 days after 
-            zz=Normalised_Data.index[i]                          #most turbulent days index 
+        if (Normalised_Data['R'][i]>Top_10_Percentile_of_75):                       #Determine all Normalised Data that is above the 10th Percentile Threshold
+            x=Normalised_Data['R'][i+1:i+6].mean()                                  #Calcualte mean of 5 days after 
+            y=Normalised_Data['R'][i+1:i+11].mean()                                 #Calcualte mean of 10 days after 
+            z=Normalised_Data['R'][i+1:i+21].mean()                                 #Calcualte mean of 20 days after 
+            zz=Normalised_Data.index[i]                                             #Calculate most turbulent days index 
 
-            top_5.append(x)
-            top_10.append(y)
-            top_20.append(z)
-            index.append(zz)
+            top_5.append(x)                                                         #Append mean of 5 days after to top_5 empty array
+            top_10.append(y)                                                        #Append mean of 10 days after to top_10 empty array
+            top_20.append(z)                                                        #Append mean of 20 days after to top_20 empty array
+            index.append(zz)                                                        #Append index of most turbulent days to index empty array
     
-    Table_1=pd.DataFrame(index=index)  #create dataframe of average turbulence days
-    Table_1['5 Day']=top_5
-    Table_1['10 Day']=top_10
-    Table_1['20 Day']=top_20
+    Table_1=pd.DataFrame(index=index)                                               # Create Table 1 DataFrame over most turbulent days index
+    Table_1['5 Day']=top_5                                                          #Append top_5 array to Dataframe
+    Table_1['10 Day']=top_10                                                        #Append top_10 array to Dataframe
+    Table_1['20 Day']=top_20                                                        #Append top_20 array to Dataframe
     
-    Table_1.sum()
+    Table_1.sum()                                                                   #Calculate the sum of each Column in Table_1 Dataframe
     
-    Table_1.plot(kind='bar', title='Mahalanobis Distance Table 1')
-    plt.show()  
+        #stage5 : Plot Table 1    
+    Table_1.plot(kind='bar', title='Mahalanobis Distance Table 1')                  #Plot bar graph of Table 1             
+    plt.show()                                                                      # Show plot
                      
-    return Table_1.dropna(),Top_75_Percentile
+    return Table_1.dropna(), Top_75_Percentile                                      #Return Table 1,  return Top_75 Percentile of Normalised Data
     #need to find out how to calculate the percentile ranks
     
 def MahalanobisDist_Table2(returns): #again need to  change returns due to singular matrix error in returns_figure5
