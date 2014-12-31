@@ -12,7 +12,7 @@ def logreturns(Adjusted_Close_Prices):    #GENERATED LOGARITHMIC RETURNS
                 ##Systemic Risk Measures##
 
 #Journal Article: Kritzman and Li - 2010 - Skulls, Financial Turbulence, and Risk Management
-def MahalanobisDist(returns):#define MahalanobisDistance function
+def MahalanobisDist(returns):                                                        #define MahalanobisDistance function
   
         #stage1: IMPORT LIBRARIES
     import pandas as pd                                                              #import pandas    
@@ -48,16 +48,18 @@ def MahalanobisDist(returns):#define MahalanobisDistance function
   
 
 
-def MahalanobisDist_Table1(returns): #have used returns and not returns_Figure5 as there is a singlur matrix error with linalg.inv(returns_Figure5.cov()) need to fix
+def MahalanobisDist_Table1(Table_1_returns): #have used returns and not returns_Figure5 as there is a singlur matrix error with linalg.inv(returns_Figure5.cov()) need to fix
 
         #stage 1: IMPORT LIBRARIES 
     import pandas as pd
     import matplotlib.pyplot as plt
+    Table_1_returns_Adjusted_Close= Table_1_returns['Adj Close'].dropna()                          #Extract Adjusted Close from Table_1 returns
+
     
     #need to add an interating for_loop here for each column of the dataframe 
        
        #stage 2: IMPORT MALANOBIS DISTANCE RETURNS
-    turbulence_score= MahalanobisDist(returns)[0]                                   #Collect Malanobis Distance resampled returns
+    turbulence_score= MahalanobisDist(Table_1_returns_Adjusted_Close)[0]                                   #Collect Malanobis Distance resampled returns
     
        #stage 3: NORMALISE MALANOBIS DISTANCE RETURNS
     Normalised_Data=pd.DataFrame(index=turbulence_score.index)                      #Create open Dataframe with identical index as Malanobis Distance resampled returns 
@@ -109,20 +111,20 @@ def MahalanobisDist_Table1(returns): #have used returns and not returns_Figure5 
     Table_1.sum()                                                                   #Calculate the sum of each Column in Table_1 Dataframe
     
         #stage5 : Plot Table 1    
-    Table_1.plot(kind='bar', title='Mahalanobis Distance Table 1')                  #Plot bar graph of Table 1             
-    plt.show()                                                                      # Show plot
+    #Table_1.plot(kind='bar', title='Mahalanobis Distance Table 1')                  #Plot bar graph of Table 1             
+    #plt.show()                                                                      # Show plot
                      
     return Table_1.dropna(), Top_75_Percentile                                      #Return Table 1,  return Top_75 Percentile of Normalised Data
     #need to find out how to calculate the percentile ranks
     
-def MahalanobisDist_Table2(returns): #again need to  change returns due to singular matrix error in returns_figure5
+def MahalanobisDist_Table2(returns, SRM_mahalanobis): #again need to  change returns due to singular matrix error in returns_figure5
     
     import pandas as pd
     import numpy as np    
     
         #stage 1: CREATE DATAFRAME OF RETURN VALUES FOR EVERY DATA THAT GENERATES A TOP 75% TURBULENCE SCORE 
     turbulent_returns=pd.DataFrame()                                                #Create open DataFrame
-    turbulent_period= srm.MahalanobisDist_Table1(returns)[1]                        #import Top_75_Percentile of Normalised returns
+    turbulent_period= SRM_mahalanobis[1]                        #import Top_75_Percentile of Normalised returns
                       
     for i in range(len(turbulent_period)):                                          #Iterate over index of turbulent period
         x=turbulent_period.index[i]                                                 #Let x equal iteration of turbulent period index
@@ -156,7 +158,7 @@ def MahalanobisDist_Table2(returns): #again need to  change returns due to singu
      
 def MahalanobisDist_Table3(returns): 
     
-    #VaR for Full Sample, End of Horizon
+        #stage 1: Calculate Variance for Fill Sample, End of Horizon
     WeightsC=[.2286, .1659, .4995, .0385, .0675, .0]
     Expected_meanC= (returns.mean() * WeightsC).mean()
     Full_sample_riskC= np.sqrt(np.diagonal((returns*WeightsC).cov()).sum())
@@ -174,18 +176,17 @@ def MahalanobisDist_Table3(returns):
     
     
     
-    #Var for Turbulent periods    
-    turbulent_returns=pd.DataFrame()
-    turbulent_period= srm.MahalanobisDist_Table1(returns)[1]
-    for i in range(len(turbulent_period)): 
-        x=turbulent_period.index[i]
-        
-        
-        
-        for j in range(len(returns)):
-            if x==returns.index[j]:
-                y=returns[j:j+1]
-                turbulent_returns= turbulent_returns.append(y)
+        #stage 2: Calcalure Variance for Turbulent periods    
+    turbulent_returns=pd.DataFrame()                                                #Create empty DataFrame
+    turbulent_period= srm.MahalanobisDist_Table1(returns)[1]                        #Import top 75% of Normalised returns as Turbulent Periods 
+    
+    for i in range(len(turbulent_period)):                                          #Iterate over the range of index for Turbulent_period
+        x=turbulent_period.index[i]                                                 #Let x equal Tubulent period
+       
+        for j in range(len(returns)):                                               #Iterate over range of index for returns
+            if x==returns.index[j]:                                                 #If the date of Turbulent Period equals the data of returns
+                y=returns[j:j+1]                                                    #Gather the returns row of DataFrame for that date
+                turbulent_returns= turbulent_returns.append(y)                      #Append row of returns with empty DataFrame labelled turbulent_returns
     
     #fix the name of C, M and A as it is repeated frmo above
     WeightsC=[.2286, .1659, .4995, .0385, .0675, .0]
@@ -488,12 +489,12 @@ def print_systemic_Risk(systemicRiskMeasure,MSCIUS_PRICES):
     
    import matplotlib.pyplot as plt
     
+   #1 MahalanobisDistances
    #1 MahalanobisDistance
-   #1 MahalanobisDistance
-   plt.xticks(rotation=50)  #rotate x axis labels 50 degrees
-   plt.xlabel('Year')#label x axis Year
-   plt.ylabel('Index')#label y axis Index
-   plt.suptitle('Mahalanobis Distance Index')#label title of graph Historical Turbulence Index Calculated from Daily Retuns of G20 Countries
+   plt.xticks(rotation=50)                                                          #rotate x axis labels 50 degrees
+   plt.xlabel('Year')                                                               #label x axis Year
+   plt.ylabel('Index')                                                              #label y axis Index
+   plt.suptitle('Mahalanobis Distance Index')                                       #label title of graph Historical Turbulence Index Calculated from Daily Retuns of G20 Countries
    plt.bar(systemicRiskMeasure[0][0].index,systemicRiskMeasure[0][0].values, width=20,color='w', label='Quiet')#graph bar chart of Mahalanobis Distance
    plt.bar(systemicRiskMeasure[0][2].index,systemicRiskMeasure[0][2].values, width=20,color='k',alpha=0.8, label='Turbulent')
    plt.legend()
@@ -502,24 +503,24 @@ def print_systemic_Risk(systemicRiskMeasure,MSCIUS_PRICES):
    
    
    #2Correlation Surprise
-   Correlation_Surprise=systemicRiskMeasure[1][0] #gather Correlation surprise array
-   Magnitude_Surprise= systemicRiskMeasure[1][1]#gather turbulence score array
+   Correlation_Surprise=systemicRiskMeasure[1][0]                                   #gather Correlation surprise array
+   Magnitude_Surprise= systemicRiskMeasure[1][1]                                    #gather turbulence score array
    
         #Magnitude Suprise   
-   plt.xticks(rotation=50)  #rotate x axis labels 50 degrees
-   plt.xlabel('Year')#label x axis Year
-   plt.ylabel('Index')#label y axis Index
-   plt.suptitle('Magnitude Surprise Index')#label title of graph Historical Turbulence Index Calculated from Daily Retuns of G20 Countries
-   plt.bar(Magnitude_Surprise.index,Magnitude_Surprise.values, width=20)#graph bar chart of Mahalanobis Distance
-   plt.show()
+  # plt.xticks(rotation=50)                                                          #rotate x axis labels 50 degrees
+  # plt.xlabel('Year')                                                               #label x axis Year
+  # plt.ylabel('Index')                                                              #label y axis Index
+  # plt.suptitle('Magnitude Surprise Index')                                         #label title of graph Historical Turbulence Index Calculated from Daily Retuns of G20 Countries
+  # plt.bar(Magnitude_Surprise.index,Magnitude_Surprise.values, width=20)            #graph bar chart of Mahalanobis Distance
+  # plt.show()
    
        #Correlation_Surprise
    #need to find weighted averaged returns
-   plt.xticks(rotation=50)  #rotate x axis labels 50 degrees
-   plt.xlabel('Year')#label x axis Year
-   plt.ylabel('Index')#label y axis Index
-   plt.suptitle('Correlation Surprise Index')#label title of graph Historical Turbulence Index Calculated from Daily Retuns of G20 Countries
-   plt.bar(Correlation_Surprise.index,Correlation_Surprise.values, width=20)#graph bar chart of Mahalanobis Distance
+   plt.xticks(rotation=50)                                                           #rotate x axis labels 50 degrees
+   plt.xlabel('Year')                                                                #label x axis Year
+   plt.ylabel('Index')                                                               #label y axis Index
+   plt.suptitle('Correlation Surprise Index')                                        #label title of graph Historical Turbulence Index Calculated from Daily Retuns of G20 Countries
+   plt.bar(Correlation_Surprise.index,Correlation_Surprise.values, width=20)         #graph bar chart of Mahalanobis Distance
    plt.show()
    
    

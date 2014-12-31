@@ -12,7 +12,7 @@ frequency='d'
 Historical_Prices = pdio.get_data_yahoo(symbols,start= Start_Date,end= End_Date) 
 Historical_Prices.save('returns')
 
-
+#Figure 5 MD
 symbols = ['XWD.TO','^RUT','^GSPC','IWF','IWD','HDG'] 
 Start_Date='1/1/1993'#MM,DD,YY
 End_Date='12/8/2014'#MM,DD,YY
@@ -26,6 +26,30 @@ Figure5['Small-Large']=Historical_Pricess_closed['^RUT'].values-Historical_Price
 Figure5['Growth-Value']=Historical_Pricess_closed['IWF'].values-Historical_Pricess_closed['IWD'].values
 Figure5['Hedge Funds']=Historical_Pricess_closed['HDG'].values
 Figure5.save('returnsMD_Figure5')
+
+
+#Table 1
+symbols = ['GMWAX','AAT','IYF']                                                     #Import Table 1 Data for Malanobis Distance Paper
+Start_Date='1/1/1993'#MM,DD,YY
+End_Date='12/8/2014'#MM,DD,YY
+frequency='d'
+Historical_Pricess = pdio.get_data_yahoo(symbols,start= Start_Date,end= End_Date)
+Historical_Pricess.save('Table_1')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
         #Correlation Surprise
