@@ -49,14 +49,19 @@ Historical_Pricess.save('Table_1')
 
 
 
-
-
-
         #Correlation Surprise
 #Exhibit 3: Times series data
 import pandas.io.data as web
 jpy = web.DataReader('DEXJPUS', 'fred')
 
+#Exhibit 5: US Equities,  European Equities, Currencies 
+    #Equities 
+symbols = ['^GSPC','^OEX'] 
+Start_Date='10/20/1973'#MM,DD,YY
+End_Date='12/8/2014'#MM,DD,YY
+frequency='d'
+Historical_Prices = pdio.get_data_yahoo(symbols,start= Start_Date,end= End_Date) 
+Historical_Prices.save('CorrelationSurprise_Exhibit5_USEquities')
 
 
 

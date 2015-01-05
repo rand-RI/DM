@@ -124,7 +124,7 @@ def MahalanobisDist_Table2(returns, SRM_mahalanobis): #again need to  change ret
     
         #stage 1: CREATE DATAFRAME OF RETURN VALUES FOR EVERY DATA THAT GENERATES A TOP 75% TURBULENCE SCORE 
     turbulent_returns=pd.DataFrame()                                                #Create open DataFrame
-    turbulent_period= SRM_mahalanobis[1]                        #import Top_75_Percentile of Normalised returns
+    turbulent_period= SRM_mahalanobis[2]                                            #import Top_75% of MahalanoBis Distance returns
                       
     for i in range(len(turbulent_period)):                                          #Iterate over index of turbulent period
         x=turbulent_period.index[i]                                                 #Let x equal iteration of turbulent period index
@@ -144,68 +144,94 @@ def MahalanobisDist_Table2(returns, SRM_mahalanobis): #again need to  change ret
     WeightsM=[.3523, .2422, .3281, .0259, .0516, .0]                                #Moderate Portfolio
     Expected_returnM= (returns.sum() * WeightsM).sum()                              #Expected Returns
     Full_sample_riskM= np.sqrt(np.diagonal((returns*WeightsM).cov()).sum())         #Full Sample Risk
-    turbulent_riskC= np.sqrt(np.diagonal((turbulent_returns*Weightsm).cov()).sum())
+    turbulent_riskM= np.sqrt(np.diagonal((turbulent_returns*WeightsM).cov()).sum())
 
     WeightsA=[.4815, .3219, .1489, .0128, .0349, .0]                                #Aggressive Portfolio
     Expected_returnA= (returns.sum() * WeightsA).sum()                              #Expected Returns
     Full_sample_riskA= np.sqrt(np.diagonal((returns*WeightsA).cov()).sum())         #Full Sample Risk
-    turbulent_riskC= np.sqrt(np.diagonal((turbulent_returns*Weightsa).cov()).sum())
+    turbulent_riskA= np.sqrt(np.diagonal((turbulent_returns*WeightsA).cov()).sum())
+    
+    Rows= ['US stocks','Non-US Stocks','US Bonds','Real Estate', 'Commodities', '', 'Expected Return', 'Full-Sample Risk', 'Turbulent Risk']
+
+
+        #stage 3: Create Table
+    Table_2= pd.DataFrame(index= Rows)                                              #Create open Table_2
+    WeightsC.extend((Expected_returnC,Full_sample_riskC,turbulent_riskC))           #Add Expected Reuturns, Full Sample Risk and Tubulent Risk to Each Weights
+    WeightsM.extend((Expected_returnM,Full_sample_riskM,turbulent_riskM))
+    WeightsA.extend((Expected_returnA,Full_sample_riskA,turbulent_riskA))
+
+    Table_2['Conservative Portfolio']= WeightsC                                     #Append each Weights to Table 2
+    Table_2['Moderate portfolio']= WeightsM
+    Table_2['Aggressive Portfolio'] = WeightsA
     
     
-    #NEED TO CREATE TABLE 
-    return     
+    
+    return Table_2, turbulent_returns 
     
      
-def MahalanobisDist_Table3(returns): 
+def MahalanobisDist_Table3(returns, Table_2): 
     
-        #stage 1: Calculate Variance for Fill Sample, End of Horizon
-    WeightsC=[.2286, .1659, .4995, .0385, .0675, .0]
-    Expected_meanC= (returns.mean() * WeightsC).mean()
-    Full_sample_riskC= np.sqrt(np.diagonal((returns*WeightsC).cov()).sum())
-    VaRC= -Expected_meanC + 2.575*Full_sample_riskC
+    from scipy.stats import norm
 
-    WeightsM=[.3523, .2422, .3281, .0259, .0516, .0]   
-    Expected_meanM= (returns.mean() * WeightsC).mean()
-    Full_sample_riskM= np.sqrt(np.diagonal((returns*WeightsM).cov()).sum())
-    VaRM= -Expected_meanM + 2.575*Full_sample_riskM
+    #Var for Full Sample, End of Horizon 
+    """
+    Variance-Covariance calculation of daily Value-at-Risk
+    using confidence level c, with mean of returns mu
+    and standard deviation of returns sigma, on a portfolio
+    of value P.
+    """   
     
-    WeightsA=[.4815, .3219, .1489, .0128, .0349, .0]
-    Expected_meanA= (returns.mean() * WeightsA).mean()
-    Full_sample_riskA= np.sqrt(np.diagonal((returns*WeightsA).cov()).sum())
-    VaRA= -Expected_meanA + 2.575*Full_sample_riskA
+    Conservative_Portfolio= []
+    Moderate_Portfolio= []
+    Aggressive_Portfolio = [] 
     
-    
-    
-        #stage 2: Calcalure Variance for Turbulent periods    
-    turbulent_returns=pd.DataFrame()                                                #Create empty DataFrame
-    turbulent_period= srm.MahalanobisDist_Table1(returns)[1]                        #Import top 75% of Normalised returns as Turbulent Periods 
-    
-    for i in range(len(turbulent_period)):                                          #Iterate over the range of index for Turbulent_period
-        x=turbulent_period.index[i]                                                 #Let x equal Tubulent period
-       
-        for j in range(len(returns)):                                               #Iterate over range of index for returns
-            if x==returns.index[j]:                                                 #If the date of Turbulent Period equals the data of returns
-                y=returns[j:j+1]                                                    #Gather the returns row of DataFrame for that date
-                turbulent_returns= turbulent_returns.append(y)                      #Append row of returns with empty DataFrame labelled turbulent_returns
-    
-    #fix the name of C, M and A as it is repeated frmo above
-    WeightsC=[.2286, .1659, .4995, .0385, .0675, .0]
-    Expected_meanC= (turbulent_returns.mean() * WeightsC).mean()
-    Full_sample_riskC= np.sqrt(np.diagonal((turbulent_returns*WeightsC).cov()).sum())
-    VaRC= -Expected_meanC + 2.575*Full_sample_riskC
+    for i in range(len(Table_2[0].columns)):
+        
+        n=Table_2[0].columns[i]                                               #Iterate over Malanobis Distance resampled returns column titles
+        m=Table_2[0][n][0:6]
 
-    WeightsM=[.3523, .2422, .3281, .0259, .0516, .0]   
-    Expected_meanM= (turbulent_returns.mean() * WeightsC).mean()
-    Full_sample_riskM= np.sqrt(np.diagonal((turbulent_returns*WeightsM).cov()).sum())
-    VaRM= -Expected_meanM + 2.575*Full_sample_riskM
+        P = 1e6   # 1,000,000 USD     #Need to find out how to do this?
+        c = 0.01  # 1% confidence interval
+        mu = (returns*m.values).mean()
+        sigma = (returns*m.values).std()
+
+        alpha = norm.ppf(1-c, mu, sigma) 
+        variance_Risk= P - P*(alpha + 1)
+        
+        if i==0:
+            Conservative_Portfolio.append(variance_Risk)
+        elif i==1:
+            Moderate_Portfolio.append(variance_Risk)
+        elif i==2:
+            Aggressive_Portfolio.append(variance_Risk)
+            
+        
+    #VaR for Turbulent Sample , End of Horizon 
     
-    WeightsA=[.4815, .3219, .1489, .0128, .0349, .0]
-    Expected_meanA= (turbulent_returns.mean() * WeightsA).mean()
-    Full_sample_riskA= np.sqrt(np.diagonal((turbulent_returns*WeightsA).cov()).sum())
-    VaRA= -Expected_meanA + 2.575*Full_sample_riskA
-         
-     #need to calculate the Maximum loss and maximum drawdown
-                 
+    for i in range(len(Table_2[0].columns)):
+        
+        n=Table_2[0].columns[i]                                               #Iterate over Malanobis Distance resampled returns column titles
+        m=Table_2[0][n][0:6]
+
+        P = 1e6   # 1,000,000 USD     #Need to find out how to do this?
+        c = 0.01  # 1% confidence interval
+        mu = (Table_2[1]*m.values).mean()
+        sigma = (Table_2[1]*m.values).std()
+
+        alpha = norm.ppf(1-c, mu, sigma) 
+        variance_Risk= P - P*(alpha + 1)
+        
+        if i==0:
+            Conservative_Portfolio.append(variance_Risk)
+        elif i==1:
+            Moderate_Portfolio.append(variance_Risk)
+        elif i==2:
+            Aggressive_Portfolio.append(variance_Risk)
+            
+    
+    #what is the maximum loss and maximum drawdown 
+ 
+                
     return     
     
     
@@ -234,12 +260,15 @@ def MahalanobisDist_Table6(returns):
             
     return     
     
+
+
+
     
     
 #Journal Article: Kinlaw and Turkington - 2012 - Correlation Surprise
 def Correlation_Surprise(returns):
     
-        #Stage1: IMPORT LIBRARIES
+        #Stage1: IMPORT LIBRARIEs
     import pandas as pd                                                           #import pandas 
     import numpy as np                                                            #import numpy
      
@@ -300,7 +329,7 @@ def Correlation_Surprise_Table_Exhbit5(SRM_correlationsurprise):
     
        
 #Step 1:
-    Top_20_Percentile= SRM_correlationsurprise[3].loc[SRM_correlationsurprise[3]["R"]>float(SRM_correlationsurprise[3].quantile(.75))] #turbulent days
+    Top_20_Percentile= SRM_correlationsurprise[3].loc[SRM_correlationsurprise[3]["R"]>float(SRM_correlationsurprise[3].quantile(.80))] #turbulent days
     
 #Step2    
     CorSurp_20_Percentile_Mag=pd.DataFrame()                                        # create Correlation DataFrame for Top 20% Magnitude Surprise dates
@@ -345,6 +374,13 @@ def Correlation_Surprise_Table_Exhbit5(SRM_correlationsurprise):
                 MagSur_20_Less_1= MagSur_20_Less_1.append(y)                         #Append Mag & Corr>1
 
     Average_MagSur_20_Less_1= MagSur_20_Less_1.mean()                                #Generate Mean
+    
+    
+    #Need to create table when importing different sets of data    
+    
+    
+    
+    
     
     return Top_20_Percentile, Average_MagSur_20, Average_MagSur_20_Greater_1, Average_MagSur_20_Less_1, MagSur_20_Greater_1, MagSur_20_Less_1
     
