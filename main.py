@@ -22,8 +22,10 @@ Table_1_returns= pd.load('Table_1')
 
 
     #Correlation Surprise
-returns_Figure5= pd.load('returnsMD_Figure5')                                      #need to gather data for this one(Datastream) #US equities MSCI secotors
-returns_Figure5= pd.load('returnsMD_Figure5')                                      #European Equities
+#Exhibit 5
+Exhibit5_USEquities= pd.load('CorrelationSurprise_Exhibit5_USEquities')
+Exhibit5_EuropeanEquities=pd.load('CorrelationSurprise_Exhibit5_EuropeanEquities')
+Exhibit5_Currency=pd.load('CorrelationSurprise_Exhibit5_Currency')
 
     
     #Absorption Ratio
@@ -40,8 +42,8 @@ Table_1= srm.MahalanobisDist_Table1(Table_1_returns)[0]
 Table_2=srm. MahalanobisDist_Table2(returns, SRM_mahalanobis)
 
     #Correlation Surprise
-SRM_correlationsurprise= srm.Correlation_Surprise(returns)                          #define Correlation Surprise Score
-Correlation_Surprise_Exhibit_5= srm.Correlation_Surprise_Table_Exhbit5(SRM_correlationsurprise)
+SRM_correlationsurprise= srm. Correlation_Surprise(returns)                        #define Correlation Surprise Score
+Correlation_Surprise_Exhibit_5= srm.Correlation_Surprise_Table_Exhbit5(Exhibit5_USEquities, Exhibit5_EuropeanEquities, Exhibit5_Currency)
 Correlation_Surprise_Exhibit_6= srm.Correlation_Surprise_Table_Exhbit6(SRM_correlationsurprise, Correlation_Surprise_Exhibit_5)
 
     #Absorption Ratio

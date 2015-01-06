@@ -305,84 +305,102 @@ def Correlation_Surprise(returns):
 
         #stage6: CONVERT LIST Type TO DATAFRAME Type    
     ms_array= np.array(ms)                                                        #Translate ms List type to ts Numpy type
-    Mag_Sur=pd.DataFrame(ms_array,index=dates,columns=list('R'))                  #Join Dataframe and Numpy array back together
+    Mag_Sur=pd.DataFrame(ms_array,index=dates,columns=list('R'))                  #Join Dataframe and Numpy array back together to calculate daily Magnitude Surprise Returns
     MS=Mag_Sur.resample('M')                                                      #create monthly returns for magnitude surprise
     
         
             #step3:CALCULATE CORRELATION SURPRISE
         #stage1: CALCULATE CORRELATION SURPRISE
-    Corre_Sur= TS.divide(Mag_Sur)
+    Corre_Sur= TS.divide(Mag_Sur)                                               # Calculate daily Correlation Surprise returns
     
-    Correlation_monthly_trail= Corre_Sur*Mag_Sur
-    resample_Correlation_monthly= Correlation_monthly_trail.resample('M',how=sum)
-    MS_sum=Mag_Sur.resample('M',how=sum)
-    Correlation_Surprise_monthly=resample_Correlation_monthly.divide(MS_sum)
+    Correlation_monthly_trail= Corre_Sur*Mag_Sur                                
+    resample_Correlation_monthly= Correlation_monthly_trail.resample('M',how=sum) 
+    MS_sum=Mag_Sur.resample('M',how=sum)                                        #Calculate monthly Magnitude Surprise returns 
+    Correlation_Surprise_monthly=resample_Correlation_monthly.divide(MS_sum)   # Calculate monthly Correlation Surprise retuns
     
-    return  Correlation_Surprise_monthly, MS, Corre_Sur, Mag_Sur
+    return  Correlation_Surprise_monthly, MS, Corre_Sur, Mag_Sur                # Return Monthly Correlation Surprise Returns,  Monthly Magnitude Surprise returns, daily Correlation Surprise returns and daily magnitude surprise returns
     
 
 
-
-def Correlation_Surprise_Table_Exhbit5(SRM_correlationsurprise):
+def Correlation_Surprise_Table_Exhbit5(Exhibit5_USEquities, Exhibit5_EuropeanEquities, Exhibit5_Currency):
     import pandas as pd
     import numpy as np
     
-       
+    #stage1: Generate Correlation Surprise Returns for US Equities, European Equities and Currencies
+    CS_Exhibit5_USEquities= Correlation_Surprise(returns=Exhibit5_USEquities)
+    CS_Exhibit5_EuropeanEquities= Correlation_Surprise(returns=Exhibit5_EuropeanEquities)
+    CS_Exhibit5_Currency= Correlation_Surprise(returns=Exhibit5_Currency)    
+    Correlation_Measures=CS_Exhibit5_USEquities,CS_Exhibit5_EuropeanEquities,CS_Exhibit5_Currency
+    
+    #Stage2: Calculate US Equities Data 
+    
+    Exhibit5_USEquities_returns=[]
+    Exhibit5_EuropeanEquities_returns=[]
+    Exhibit5_Currency=[]
+    Exhibit5_returns=Exhibit5_USEquities_returns,Exhibit5_EuropeanEquities_returns,Exhibit5_Currency
+    
+    for l in range(len(Exhibit5_returns)):
+        for k in range(len(Correlation_Measures)):
+           
+        
 #Step 1:
-    Top_20_Percentile= SRM_correlationsurprise[3].loc[SRM_correlationsurprise[3]["R"]>float(SRM_correlationsurprise[3].quantile(.80))] #turbulent days
-    
+            Top_20_Percentile= Correlation_Measures[k][3].loc[Correlation_Measures[k][3]["R"]>float(Correlation_Measures[k][3].quantile(.80))] #turbulent days
+            
 #Step2    
-    CorSurp_20_Percentile_Mag=pd.DataFrame()                                        # create Correlation DataFrame for Top 20% Magnitude Surprise dates
-    MagSur_20= Top_20_Percentile                                                    # Top 20% Magnitude Surprise
-    for i in range(len(MagSur_20)): 
-        x=MagSur_20.index[i]
-               
-        for j in range(len(SRM_correlationsurprise[2])):
-            if x==SRM_correlationsurprise[2].index[j]:                              #If Top 20% Magnitude Surprise Dates equals the Correlation Surprise Data
-                y=SRM_correlationsurprise[2][j:j+1]                                 # Grab the index and value data for previous
-                CorSurp_20_Percentile_Mag= CorSurp_20_Percentile_Mag.append(y)      #append to Dataframe
+            CorSurp_20_Percentile_Mag=pd.DataFrame()                                        # create Correlation DataFrame for Top 20% Magnitude Surprise dates
+            MagSur_20= Top_20_Percentile                                                    # Top 20% Magnitude Surprise
+            for i in range(len(MagSur_20)): 
+                x=MagSur_20.index[i]
+                for j in range(len(Correlation_Measures[k][2])):
+                    if x==Correlation_Measures[k][2].index[j]:                              #If Top 20% Magnitude Surprise Dates equals the Correlation Surprise Data
+                        y=Correlation_Measures[k][2][j:j+1]                                 # Grab the index and value data for previous
+                        CorSurp_20_Percentile_Mag= CorSurp_20_Percentile_Mag.append(y)      #append to Dataframe
     
-    Corr_greater_1= CorSurp_20_Percentile_Mag.loc[CorSurp_20_Percentile_Mag["R"]>float(1)] #Dates with Correlation Surprise greater than 1
-    Corr_less_1= CorSurp_20_Percentile_Mag.loc[CorSurp_20_Percentile_Mag["R"]<float(1)]     #Dates with Correlation Surprise less than 1
+            Corr_greater_1= CorSurp_20_Percentile_Mag.loc[CorSurp_20_Percentile_Mag["R"]>float(1)] #Dates with Correlation Surprise greater than 1
+            Corr_less_1= CorSurp_20_Percentile_Mag.loc[CorSurp_20_Percentile_Mag["R"]<float(1)]     #Dates with Correlation Surprise less than 1
     
  #Step3
     #Average Mag
-    Average_MagSur_20= Top_20_Percentile.mean()                                     #Generate Average Magnitude Surprise values for Top 20%
+            Average_MagSur_20= Top_20_Percentile.mean()                                     #Generate Average Magnitude Surprise values for Top 20%
     
     #Average Mag Corr>1
-    MagSur_20_Greater_1 =pd.DataFrame()                                             #Create Magnitude Surprise with Correlation greater than 1 DataFrame
-    MagSur_20= Top_20_Percentile
-    for i in range(len(MagSur_20)): 
-        x=MagSur_20.index[i]
-               
-        for j in range(len(Corr_greater_1)):
-            if x==Corr_greater_1.index[j]:                                           # If Magnitude Surprise index equals the Correlation Surprise >1 index 
-                y=MagSur_20[i:i+1]                                                   #Grab Magnitude Surprise value
-                MagSur_20_Greater_1= MagSur_20_Greater_1.append(y)                   #Append Mag & Corr>1
+            MagSur_20_Greater_1 =pd.DataFrame()                                             #Create Magnitude Surprise with Correlation greater than 1 DataFrame
+            MagSur_20= Top_20_Percentile
+            for i in range(len(MagSur_20)): 
+                x=MagSur_20.index[i]    
+                for j in range(len(Corr_greater_1)):
+                    if x==Corr_greater_1.index[j]:                                           # If Magnitude Surprise index equals the Correlation Surprise >1 index 
+                        y=MagSur_20[i:i+1]                                                   #Grab Magnitude Surprise value
+                        MagSur_20_Greater_1= MagSur_20_Greater_1.append(y)                   #Append Mag & Corr>1
      
-    Average_MagSur_20_Greater_1= MagSur_20_Greater_1.mean()                         #Generate Mean
+            Average_MagSur_20_Greater_1= MagSur_20_Greater_1.mean()                         #Generate Mean
                
     #Average Mag Corr<1
-    MagSur_20_Less_1 =pd.DataFrame()
-    MagSur_20= Top_20_Percentile
-    for i in range(len(MagSur_20)): 
-        x=MagSur_20.index[i]
-               
-        for j in range(len(Corr_less_1)):  
-            if x==Corr_less_1.index[j]:                                              # If Magnitude Surprise index equals the Correlation Surprise <1 index
-                y=MagSur_20[j:j+1]                                                   #Grab Magnitude Surprise value
-                MagSur_20_Less_1= MagSur_20_Less_1.append(y)                         #Append Mag & Corr>1
+            MagSur_20_Less_1 =pd.DataFrame()
+            MagSur_20= Top_20_Percentile
+            for i in range(len(MagSur_20)): 
+                x=MagSur_20.index[i]
+                for j in range(len(Corr_less_1)):  
+                    if x==Corr_less_1.index[j]:                                              # If Magnitude Surprise index equals the Correlation Surprise <1 index
+                        y=MagSur_20[j:j+1]                                                   #Grab Magnitude Surprise value
+                        MagSur_20_Less_1= MagSur_20_Less_1.append(y)                         #Append Mag & Corr>1
 
-    Average_MagSur_20_Less_1= MagSur_20_Less_1.mean()                                #Generate Mean
-    
+            Average_MagSur_20_Less_1= MagSur_20_Less_1.mean()                                #Generate Mean
+            
+            
+            Exhibit5_returns[l].append(Top_20_Percentile)
+            Exhibit5_returns[l].append(Average_MagSur_20)
+            Exhibit5_returns[l].append(Average_MagSur_20_Greater_1)
+            Exhibit5_returns[l].append(Average_MagSur_20_Less_1)
+            Exhibit5_returns[l].append(MagSur_20_Greater_1)
+            Exhibit5_returns[l].append(MagSur_20_Less_1)
+
     
     #Need to create table when importing different sets of data    
     
+      
     
-    
-    
-    
-    return Top_20_Percentile, Average_MagSur_20, Average_MagSur_20_Greater_1, Average_MagSur_20_Less_1, MagSur_20_Greater_1, MagSur_20_Less_1
+    return Top_20_Percentile, Average_MagSur_20, Average_MagSur_20_Greater_1, Average_MagSur_20_Less_1, MagSur_20_Greater_1, MagSur_20_Less_1,  Exhibit5_returns
     
 
 def Correlation_Surprise_Table_Exhbit6(SRM_correlationsurprise, Correlation_Surprise_Exhibit_5):
@@ -430,7 +448,8 @@ def Correlation_Surprise_Table_Exhbit6(SRM_correlationsurprise, Correlation_Surp
     Average_Next_day_MagSur_Less_1= Next_day_MagSur_Less_1.mean()
     
     
-    return  Average_Next_day_MagSur,  Average_Next_day_MagSur_Greater_1,  Average_Next_day_MagSur_Less_1
+    return  Average_Next_day_MagSur,  Average_Next_day_MagSur_Greater_1,  Average_Next_day_M
+    agSur_Less_1
         
 
 def Correlation_Surprise_Table_Exhbit7(): 
