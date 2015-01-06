@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import datetime as dt 
 import numpy as np
+import pickle as pk
 
 #stage 1: Set Data
 symbols = ['^AORD','^ATX','^BFX','^BSESN','^BVSP','^FCHI','^GDAXI','^GSPC','^GSPTSE','^HSI','^JKSE','^KLSE','^KS11','^MERV','^MXX','^N225','^SSEC','^STI','^TWII'] # List all stock symbols to download in alphabetical order
@@ -21,8 +22,22 @@ returns= srm.pulldata(symbols, Start_Date,End_Date,frequency)[0]
 SRM_mahalanobis= srm.MahalanobisDist(returns)[0]#define Mahalanobis Distance Formula
 SRM_correlationsurprise= srm.Correlation_Surprise(returns)#define Correlation Surprise Score
 SRM_absorptionratio= srm.Absorption_Ratio(returns)#define Absorption Ratio
-systemicRiskMeasure= [SRM_mahalanobis,SRM_correlationsurprise,SRM_absorptionratio] # group systemic risk measures
-srm.print_systemic_Risk(systemicRiskMeasure)
+
+#output = pk.open('data.pk1','wb')
+#pk.dump(data)
+
+# Creating data frame for systemic risk measures
+
+
+systemicRiskMeasure_df = pd.DataFrame(SRM_mahalanobis,SRM_correlationsurprise,SRM_absorptionratio)
+systemicRiskMeasure_df.columns = ['Mahanalobis','CorrelationSurprise','AbsorptionRatio']
+
+
+
+
+
+#systemicRiskMeasure= [SRM_mahalanobis,SRM_correlationsurprise,SRM_absorptionratio] # group systemic risk measures
+#srm.print_systemic_Risk(systemicRiskMeasure)
 
 
 
