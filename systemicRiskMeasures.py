@@ -93,11 +93,11 @@ def MahalanobisDist_Table1(Returns):
             Next_20.append(z)                                                  #Append mean of 20 days after to  Next_20 empty array
             index.append(zz)                                                   #Append index of most turbulent days to index empty array
     Table_1=pd.DataFrame(index=index)                                          #Create Table 1 DataFrame over most turbulent days index
-    Table_1['5 Day']= Next_5                                                   #Append  Next_5 array to Dataframe
-    Table_1['10 Day']= Next_10                                                 #Append  Next_10 array to Dataframe
-    Table_1['20 Day']= Next_20                                                 #Append  Next_20 array to Dataframe
+    Table_1['Next 5 Days']= Next_5                                             #Append  Next_5 array to Dataframe
+    Table_1['Next 10 Days']= Next_10                                           #Append  Next_10 array to Dataframe
+    Table_1['Next 20 Days']= Next_20                                           #Append  Next_20 array to Dataframe
     
-    Table_1.sum()                                                              #Calculate the total average returns for each column in Table_1 Dataframe
+    Table_1_returns= Table_1.sum()                                             #Calculate the total average returns for each column in Table_1 Dataframe
     
         #stage5 : Plot Table 1    
     #Table_1.plot(kind='bar', title='Mahalanobis Distance Table 1')            #Plot bar graph of Table 1             
@@ -106,10 +106,10 @@ def MahalanobisDist_Table1(Returns):
                                                                  
     """need to find out how to calculate the percentile ranks"""    
                  
-    return Table_1.dropna(), Top_75_Percentile                                 #Return Table 1,  return Top_75 Percentile of Normalised Data
+    return Table_1_returns, Top_75_Percentile                                  #Return Table 1,  return Top_75 Percentile of Normalised Data
     
     
-def MahalanobisDist_Table2(Returns, Mahalanobis_Distance_Returns): #need to source Table_2 returns.
+def MahalanobisDist_Table2(Returns, Mahalanobis_Distance_Returns):             #need to source Table_2 returns.
     
     import pandas as pd
     import numpy as np    
@@ -301,56 +301,52 @@ def Correlation_Surprise(Returns):
 
 def Correlation_Surprise_Table_Exhbit5(Exhibit5_USEquities, Exhibit5_EuropeanEquities, Exhibit5_Currency):
     import pandas as pd
-    import numpy as np
-    
-    #stage1: Generate Correlation Surprise Returns for US Equities, European Equities and Currencies
-    CS_Exhibit5_USEquities= Correlation_Surprise(returns=Exhibit5_USEquities)
-    CS_Exhibit5_EuropeanEquities= Correlation_Surprise(returns=Exhibit5_EuropeanEquities)
-    CS_Exhibit5_Currency= Correlation_Surprise(returns=Exhibit5_Currency)    
-    Correlation_Measures=CS_Exhibit5_USEquities,CS_Exhibit5_EuropeanEquities,CS_Exhibit5_Currency
-    
-    #Stage2: Calculate US Equities Data 
-    
-    Exhibit5_USEquities_returns=[]
-    Exhibit5_EuropeanEquities_returns=[]
-    Exhibit5_Currency=[]
-    Exhibit5_returns=Exhibit5_USEquities_returns,Exhibit5_EuropeanEquities_returns,Exhibit5_Currency
-    
-    for l in range(len(Exhibit5_returns)):
-        for k in range(len(Correlation_Measures)):
-           
         
-#Step 1:
-            Top_20_Percentile= Correlation_Measures[k][3].loc[Correlation_Measures[k][3]["R"]>float(Correlation_Measures[k][3].quantile(.80))] #turbulent days
-            
-#Step2    
-            CorSurp_20_Percentile_Mag=pd.DataFrame()                                        # create Correlation DataFrame for Top 20% Magnitude Surprise dates
-            MagSur_20= Top_20_Percentile                                                    # Top 20% Magnitude Surprise
-            for i in range(len(MagSur_20)): 
-                x=MagSur_20.index[i]
-                for j in range(len(Correlation_Measures[k][2])):
-                    if x==Correlation_Measures[k][2].index[j]:                              #If Top 20% Magnitude Surprise Dates equals the Correlation Surprise Data
-                        y=Correlation_Measures[k][2][j:j+1]                                 # Grab the index and value data for previous
-                        CorSurp_20_Percentile_Mag= CorSurp_20_Percentile_Mag.append(y)      #append to Dataframe
+    #stage1: Generate Correlation Surprise Returns for US Equities, European Equities and Currencies
+    CS_Exhibit5_USEquities= Correlation_Surprise(Returns=Exhibit5_USEquities)  # CS returns for USEquities
+    CS_Exhibit5_EuropeanEquities= Correlation_Surprise(Returns=Exhibit5_EuropeanEquities)# CS returns for EuropeanEquities
+    CS_Exhibit5_Currency= Correlation_Surprise(Returns=Exhibit5_Currency)      # CS returns for Currency
+    Correlation_Measures=CS_Exhibit5_USEquities, CS_Exhibit5_EuropeanEquities, CS_Exhibit5_Currency #Group CS returns together labelled "Correlation_Measures"
+    
+    #Stage2: Calculate Exhibit 5 returns 
+    Exhibit5_USEquities_returns=[]                                             #Create empty array  USEquities_return
+    Exhibit5_EuropeanEquities_returns=[]                                       #Create empty array  EuroEquities_return
+    Exhibit5_Currency=[]                                                       #Create empty array  Currency
+    Exhibit5_returns= Exhibit5_USEquities_returns, Exhibit5_EuropeanEquities_returns, Exhibit5_Currency #Group Empty Arrays together
+
+#Step1: Identify the 20% of days in the historical sample with the highest magnitude surprise scores    
+    for l in range(len(Exhibit5_returns)):                                     #Begin by iterating over the index of Exhibit5_returns to calculate returns for US Equities, Euro Equities and Currency individually
+        for k in range(len(Correlation_Measures)):                             #Iterate over the index of Correlation_Measures
+            Top_20_Percentile= Correlation_Measures[k][3].loc[Correlation_Measures[k][3]["R"]>float(Correlation_Measures[k][3].quantile(.80))] #Calculate top 20% Magnitude Surprise returns for given returns
+        
+#Step2: Partition the sample from step 1 into two smaller subsamples: days with high correlation surprise and days with low correlation surprise    
+            CorSurp_20_Percentile_Mag=pd.DataFrame()                           # create empty Correlation DataFrame for Top 20% Magnitude Surprise dates to be append to
+            MagSur_20= Top_20_Percentile                                       # Defin Top 20% Magnitude Surprise as Magnitude Surprise 20%
+            for i in range(len(MagSur_20)):                                    #Iterate over the index over MagSur_20
+                x=MagSur_20.index[i]                                           #Let x equal dates of MagSur_20
+                for j in range(len(Correlation_Measures[k][2])):               #Iterate over daily correlation surprise for US equities, Euro equities and currency indivudally
+                    if x==Correlation_Measures[k][2].index[j]:                 #If Top 20% Magnitude Surprise Dates equals the Correlation Surprise Data
+                        y=Correlation_Measures[k][2][j:j+1]                    #Grab the index and value data for that period
+                        CorSurp_20_Percentile_Mag= CorSurp_20_Percentile_Mag.append(y) #append to Dataframe
     
             Corr_greater_1= CorSurp_20_Percentile_Mag.loc[CorSurp_20_Percentile_Mag["R"]>float(1)] #Dates with Correlation Surprise greater than 1
-            Corr_less_1= CorSurp_20_Percentile_Mag.loc[CorSurp_20_Percentile_Mag["R"]<float(1)]     #Dates with Correlation Surprise less than 1
+            Corr_less_1= CorSurp_20_Percentile_Mag.loc[CorSurp_20_Percentile_Mag["R"]<float(1)]#Dates with Correlation Surprise less than 1
     
- #Step3
+#Step3: Measure, for the full smaple identified in step 1 and its two subsamples identified in step 2, the subsequent volatility and performance of relevant investments and strategies
     #Average Mag
-            Average_MagSur_20= Top_20_Percentile.mean()                                     #Generate Average Magnitude Surprise values for Top 20%
+            Average_MagSur_20= Top_20_Percentile.mean()                        #Generate Average Magnitude Surprise values for Top 20% over full sample
     
     #Average Mag Corr>1
-            MagSur_20_Greater_1 =pd.DataFrame()                                             #Create Magnitude Surprise with Correlation greater than 1 DataFrame
-            MagSur_20= Top_20_Percentile
-            for i in range(len(MagSur_20)): 
+            MagSur_20_Greater_1 =pd.DataFrame()                                #Create empty magnitude surprise dataframe for Magnitude Surprise returns with Correlation Surprise greater than 1
+            MagSur_20= Top_20_Percentile                                       #Define top 20% of Magnitude Surprise
+            for i in range(len(MagSur_20)):                                    #Iterate over index of Magnitude Surprise top 20%
                 x=MagSur_20.index[i]    
-                for j in range(len(Corr_greater_1)):
-                    if x==Corr_greater_1.index[j]:                                           # If Magnitude Surprise index equals the Correlation Surprise >1 index 
-                        y=MagSur_20[i:i+1]                                                   #Grab Magnitude Surprise value
-                        MagSur_20_Greater_1= MagSur_20_Greater_1.append(y)                   #Append Mag & Corr>1
+                for j in range(len(Corr_greater_1)):                            
+                    if x==Corr_greater_1.index[j]:                             #If Magnitude Surprise index equals the Correlation Surprise >1 index 
+                        y=MagSur_20[i:i+1]                                     #Grab Magnitude Surprise value
+                        MagSur_20_Greater_1= MagSur_20_Greater_1.append(y)     #Append Mag data given Corr>1
      
-            Average_MagSur_20_Greater_1= MagSur_20_Greater_1.mean()                         #Generate Mean
+            Average_MagSur_20_Greater_1= MagSur_20_Greater_1.mean()            #Generate Mean 
                
     #Average Mag Corr<1
             MagSur_20_Less_1 =pd.DataFrame()
@@ -358,71 +354,76 @@ def Correlation_Surprise_Table_Exhbit5(Exhibit5_USEquities, Exhibit5_EuropeanEqu
             for i in range(len(MagSur_20)): 
                 x=MagSur_20.index[i]
                 for j in range(len(Corr_less_1)):  
-                    if x==Corr_less_1.index[j]:                                              # If Magnitude Surprise index equals the Correlation Surprise <1 index
-                        y=MagSur_20[j:j+1]                                                   #Grab Magnitude Surprise value
-                        MagSur_20_Less_1= MagSur_20_Less_1.append(y)                         #Append Mag & Corr>1
+                    if x==Corr_less_1.index[j]:                                # If Magnitude Surprise index equals the Correlation Surprise <1 index
+                        y=MagSur_20[j:j+1]                                     #Grab Magnitude Surprise value
+                        MagSur_20_Less_1= MagSur_20_Less_1.append(y)           #Append Mag & Corr>1
 
-            Average_MagSur_20_Less_1= MagSur_20_Less_1.mean()                                #Generate Mean
+            Average_MagSur_20_Less_1= MagSur_20_Less_1.mean()                  #Generate Mean
             
-            
-            Exhibit5_returns[l].append(Top_20_Percentile)
-            Exhibit5_returns[l].append(Average_MagSur_20)
-            Exhibit5_returns[l].append(Average_MagSur_20_Greater_1)
-            Exhibit5_returns[l].append(Average_MagSur_20_Less_1)
-            Exhibit5_returns[l].append(MagSur_20_Greater_1)
-            Exhibit5_returns[l].append(MagSur_20_Less_1)
-
+    #Append all data to each US Equities, and Euro Euities and Currencies indivudally       
+            Exhibit5_returns[l].extend((Average_MagSur_20, Average_MagSur_20_Greater_1,Average_MagSur_20_Less_1))
     
-    #Need to create table when importing different sets of data    
+    #Need to create table when importing different sets of data  
+    #Rows= ['MS 20%','MS with CS>=1','MS 20% with CS<=1']
+    #Table_5= pd.DataFrame(index= Rows)                                         #Create open Table_2
     
-      
+    #Table_5['US Equities']= Exhibit5_returns[0]                                #Append each Portfolio's Data to Table 2
+    #Table_5['European Equities']= Exhibit5_returns[1]
+    #Table_5['Currencies'] = Exhibit5_returns[2]
+          
     
-    return Top_20_Percentile, Average_MagSur_20, Average_MagSur_20_Greater_1, Average_MagSur_20_Less_1, MagSur_20_Greater_1, MagSur_20_Less_1,  Exhibit5_returns
+    #return  Table_5, Top_20_Percentile, Exhibit5_returns
+    return  Top_20_Percentile, Exhibit5_returns
     
 
 def Correlation_Surprise_Table_Exhbit6(SRM_correlationsurprise, Correlation_Surprise_Exhibit_5):
     
     import pandas as pd
-    import numpy as np 
+     
+    for l in range(len(Correlation_Surprise_Exhibit_5[1])):
+        #Calculate Next day magnitude surprise
+        Next_day_MagSur= pd.DataFrame()
+        MagSur_20= Correlation_Surprise_Exhibit_5[0]
+        for i in range(len(MagSur_20)): 
+            x= MagSur_20.index[i]
+            for j in range(len(SRM_correlationsurprise[3])):
+                if x== SRM_correlationsurprise[3].index[j]:
+                    y= SRM_correlationsurprise[3][j+1:j+2]
+                    Next_day_MagSur= Next_day_MagSur.append(y)
     
-    #Next day magnitude surprise
-    Next_day_MagSur= pd.DataFrame()
-    MagSur_20= Correlation_Surprise_Exhibit_5[0]
-    for i in range(len(MagSur_20)): 
-        x= MagSur_20.index[i]
-               
-        for j in range(len(SRM_correlationsurprise[3])):
-            if x== SRM_correlationsurprise[3].index[j]:
-                y= SRM_correlationsurprise[3][j+1:j+2]
-                Next_day_MagSur= Next_day_MagSur.append(y)
-    
-    Average_Next_day_MagSur= Next_day_MagSur.mean()
+        Average_Next_day_MagSur= Next_day_MagSur.mean()
     
     #Next day magnitude surprise with Correlation Surprise greater than 1
-    Next_day_MagSur_Greater_1= pd.DataFrame()
-    MagSur_20_Greater_1= Correlation_Surprise_Exhibit_5[4]
-    for i in range(len(MagSur_20_Greater_1)): 
-        x= MagSur_20_Greater_1.index[i]
-               
-        for j in range(len(SRM_correlationsurprise[3])):
-            if x== SRM_correlationsurprise[3].index[j]:
-                y= SRM_correlationsurprise[3][j+1:j+2]
-                Next_day_MagSur_Greater_1= Next_day_MagSur_Greater_1.append(y)
+        Next_day_MagSur_Greater_1= pd.DataFrame()
+        MagSur_20_Greater_1= Correlation_Surprise_Exhibit_5[l][2]
+        for i in range(len(MagSur_20_Greater_1)):
+            x= MagSur_20_Greater_1.index[i]
+            for j in range(len(SRM_correlationsurprise[3])):
+                if x== SRM_correlationsurprise[3].index[j]:
+                    y= SRM_correlationsurprise[3][j+1:j+2]
+                    Next_day_MagSur_Greater_1= Next_day_MagSur_Greater_1.append(y)
     
-    Average_Next_day_MagSur_Greater_1= Next_day_MagSur_Greater_1.mean()
+        Average_Next_day_MagSur_Greater_1= Next_day_MagSur_Greater_1.mean()
     
     #Next day magnitude surprise with Correlation Surprise less than 1
-    Next_day_MagSur_Less_1= pd.DataFrame()
-    MagSur_20_Less_1= Correlation_Surprise_Exhibit_5[5]
-    for i in range(len(MagSur_20_Less_1)): 
-        x= MagSur_20_Less_1.index[i]
-               
-        for j in range(len(SRM_correlationsurprise[3])):
-            if x== SRM_correlationsurprise[3].index[j]:
-                y= SRM_correlationsurprise[3][j+1:j+2]
-                Next_day_MagSur_Less_1= Next_day_MagSur_Less_1.append(y)
+        Next_day_MagSur_Less_1= pd.DataFrame()
+        MagSur_20_Less_1= Correlation_Surprise_Exhibit_5[l][3]
+        for i in range(len(MagSur_20_Less_1)): 
+            x= MagSur_20_Less_1.index[i]
+            for j in range(len(SRM_correlationsurprise[3])):
+                if x== SRM_correlationsurprise[3].index[j]:
+                    y= SRM_correlationsurprise[3][j+1:j+2]
+                    Next_day_MagSur_Less_1= Next_day_MagSur_Less_1.append(y)
     
-    Average_Next_day_MagSur_Less_1= Next_day_MagSur_Less_1.mean()
+        Average_Next_day_MagSur_Less_1= Next_day_MagSur_Less_1.mean()
+    
+    #Tbale: when importing different sets of data  
+    Rows= ['MS 20% with CS<=1' ,'MS 20%','MS with CS>=1']
+    Table_6= pd.DataFrame(index= Rows)                                         #Create open Table_2
+    
+    Table_6['US Equities']= Exhibit5_returns[0]                                #Append each Portfolio's Data to Table 2
+    Table_6['European Equities']= Exhibit5_returns[1]
+    Table_6['Currencies'] = Exhibit5_returns[2]
     
     
     return  Average_Next_day_MagSur,  Average_Next_day_MagSur_Greater_1,  Average_Next_day_MagSur_Less_1
@@ -440,63 +441,61 @@ def Absorption_Ratio(FamaFrench49):
     #problem with Absorption ratio is that it needs non-log return data. Once this is obtained it should take the exponential 250 day returns. After the log returns should be taken and then the 500day trailing window    
     
         #stage0: IMPORT LIBRARIES    
-    import pandas as pd                                                            #import pandas    
-    import numpy as np                                                             #import numpys  
-    import math as mth                                                             #import math
+    import pandas as pd                                                        #import pandas    
+    import numpy as np                                                         #import numpys  
+    import math as mth                                                         #import math
     
         #stage1: GATHER DAILY TRAIL LENGTH
-    time_series_of_500days=len(FamaFrench49)-500                                    #collect data that is outside of initial 500day window
+    time_series_of_500days=len(FamaFrench49)-500                               #collect data that is outside of initial 500day window
     
         #stage2: GENERATE ABSORPTION RATIO DATA
-    plotting_data=[]                                                                #create list titled plot data
-        
+    plotting_data=[]                                                           #create list titled plot data
     for i in range(time_series_of_500days):
         
-              
-              #stage1: CALCULATE EXPONENTIAL WEIGHTING
-        returns_500day= FamaFrench49[i:i+500]                                       #create 500 day trailing window        
+                #stage1: CALCULATE EXPONENTIAL WEIGHTING
+        returns_500day= FamaFrench49[i:i+500]                                  #create 500 day trailing window        
         EWMA_returns=pd.ewma(returns_500day, halflife=250)
     
             #stage2: CALCULATE COVARIANCE MATRIX
-        return_covariance= EWMA_returns.cov()                                       #Generate Covariance Matrix over 500 day window
+        return_covariance= EWMA_returns.cov()                                  #Generate Covariance Matrix over 500 day window
     
             #stage3: CALCULATE EIGENVECTORS AND EIGENVALUES
-        ev_values,ev_vector= np.linalg.eig(return_covariance)                       #generate eigenvalues and vectors over 500 day window 
+        ev_values,ev_vector= np.linalg.eig(return_covariance)                  #generate eigenvalues and vectors over 500 day window 
     
             #Stage4: SORT EIGENVECTORS RESPECTIVE TO THEIR EIGENVALUES
         ev_values_sort_high_to_low = ev_values.argsort()[::-1]                         
-        ev_values_sort=ev_values[ev_values_sort_high_to_low]                        #sort eigenvalues from highest to lowest
-        ev_vectors_sorted= ev_vector[:,ev_values_sort_high_to_low]                  #sort eigenvectors corresponding to sorted eigenvalues
+        ev_values_sort=ev_values[ev_values_sort_high_to_low]                   #sort eigenvalues from highest to lowest
+        ev_vectors_sorted= ev_vector[:,ev_values_sort_high_to_low]             #sort eigenvectors corresponding to sorted eigenvalues
     
             #Stage5: COLLECT 1/5 OF EIGENVALUES
-        shape= ev_vectors_sorted.shape[0]                                           #collect shape of ev_vector matrix
+        shape= ev_vectors_sorted.shape[0]                                      #collect shape of ev_vector matrix
         round_down_shape= mth.floor(shape*0.2)
        #round_down_shape= mth.floor(shape*0.2) #round shape to lowest integer
-        ev_vectors= ev_vectors_sorted[:,0:round_down_shape]                         #collect 1/5th the number of assets in sample
+        ev_vectors= ev_vectors_sorted[:,0:round_down_shape]                    #collect 1/5th the number of assets in sample
     
             #stage6: CALCULATE ABSORPTION RATIO DATA
         variance_of_ith_eigenvector= np.var(ev_vectors,axis=0).sum()
         #variance_of_ith_eigenvector= ev_vectors.diagonal()#fetch variance of ith eigenvector
-        variance_of_jth_asset= EWMA_returns.var().sum()                              #fetch variance of jth asset
+        variance_of_jth_asset= EWMA_returns.var().sum()                        #fetch variance of jth asset
     
             #stage7: CONSTRUCT ABSORPTION RATIO FORMULA     
-        numerator= variance_of_ith_eigenvector                                       #calculate the sum to n of variance of ith eigenvector
-        denominator= variance_of_jth_asset                                           #calculate the sum to n of variance of jth asset
+        numerator= variance_of_ith_eigenvector                                 #calculate the sum to n of variance of ith eigenvector
+        denominator= variance_of_jth_asset                                     #calculate the sum to n of variance of jth asset
                
-        Absorption_Ratio= numerator/denominator                                     #calculate Absorption ratio
+        Absorption_Ratio= numerator/denominator                                #calculate Absorption ratio
     
             #stage8: Append Data
-        plotting_data.append(Absorption_Ratio)                                       #Append Absorption Ratio iterations into plotting_data list
+        plotting_data.append(Absorption_Ratio)                                 #Append Absorption Ratio iterations into plotting_data list
         
     
          #stage9: Plot Data
-    plot_array= np.array(plotting_data)                                              #convert plotting_data into array
-    dates= FamaFrench49[500:time_series_of_500days+500].index                        #gather dates index over 500 day window iterations
-    Absorption_Ratio_daily=pd.DataFrame(plot_array,index=dates,columns=list('R'))    #merge dates and Absorption ratio returns
+    plot_array= np.array(plotting_data)                                        #convert plotting_data into array
+    dates= FamaFrench49[500:time_series_of_500days+500].index                  #gather dates index over 500 day window iterations
+    Absorption_Ratio_daily=pd.DataFrame(plot_array,index=dates,columns=list('R'))#merge dates and Absorption ratio returns
     Absorption_Ratio= Absorption_Ratio_daily
     #Absorption_Ratio=Absorption_Ratio_daily.resample('M', how=None)#group daily data into monthly data
     
-    return  Absorption_Ratio #print Absorption Ratio
+    return  Absorption_Ratio                                                   #print Absorption Ratio
     
    
    
@@ -522,10 +521,10 @@ def print_systemic_Risk(systemicRiskMeasure,MSCIUS_PRICES):
     
    #1 MahalanobisDistances
    #1 MahalanobisDistance
-   plt.xticks(rotation=50)                                                          #rotate x axis labels 50 degrees
-   plt.xlabel('Year')                                                               #label x axis Year
-   plt.ylabel('Index')                                                              #label y axis Index
-   plt.suptitle('Mahalanobis Distance Index')                                       #label title of graph Historical Turbulence Index Calculated from Daily Retuns of G20 Countries
+   plt.xticks(rotation=50)                                                     #rotate x axis labels 50 degrees
+   plt.xlabel('Year')                                                          #label x axis Year
+   plt.ylabel('Index')                                                         #label y axis Index
+   plt.suptitle('Mahalanobis Distance Index')                                  #label title of graph Historical Turbulence Index Calculated from Daily Retuns of G20 Countries
    plt.bar(systemicRiskMeasure[0][0].index,systemicRiskMeasure[0][0].values, width=20,color='w', label='Quiet')#graph bar chart of Mahalanobis Distance
    plt.bar(systemicRiskMeasure[0][2].index,systemicRiskMeasure[0][2].values, width=20,color='k',alpha=0.8, label='Turbulent')
    plt.legend()
@@ -534,24 +533,24 @@ def print_systemic_Risk(systemicRiskMeasure,MSCIUS_PRICES):
    
    
    #2Correlation Surprise
-   Correlation_Surprise=systemicRiskMeasure[1][0]                                   #gather Correlation surprise array
-   Magnitude_Surprise= systemicRiskMeasure[1][1]                                    #gather turbulence score array
+   Correlation_Surprise=systemicRiskMeasure[1][0]                              #gather Correlation surprise array
+   Magnitude_Surprise= systemicRiskMeasure[1][1]                               #gather turbulence score array
    
         #Magnitude Suprise   
-  # plt.xticks(rotation=50)                                                          #rotate x axis labels 50 degrees
-  # plt.xlabel('Year')                                                               #label x axis Year
-  # plt.ylabel('Index')                                                              #label y axis Index
-  # plt.suptitle('Magnitude Surprise Index')                                         #label title of graph Historical Turbulence Index Calculated from Daily Retuns of G20 Countries
-  # plt.bar(Magnitude_Surprise.index,Magnitude_Surprise.values, width=20)            #graph bar chart of Mahalanobis Distance
+  # plt.xticks(rotation=50)                                                    #rotate x axis labels 50 degrees
+  # plt.xlabel('Year')                                                         #label x axis Year
+  # plt.ylabel('Index')                                                        #label y axis Index
+  # plt.suptitle('Magnitude Surprise Index')                                   #label title of graph Historical Turbulence Index Calculated from Daily Retuns of G20 Countries
+  # plt.bar(Magnitude_Surprise.index,Magnitude_Surprise.values, width=20)      #graph bar chart of Mahalanobis Distance
   # plt.show()
    
        #Correlation_Surprise
-   #need to find weighted averaged returns
-   plt.xticks(rotation=50)                                                           #rotate x axis labels 50 degrees
-   plt.xlabel('Year')                                                                #label x axis Year
-   plt.ylabel('Index')                                                               #label y axis Index
-   plt.suptitle('Correlation Surprise Index')                                        #label title of graph Historical Turbulence Index Calculated from Daily Retuns of G20 Countries
-   plt.bar(Correlation_Surprise.index,Correlation_Surprise.values, width=20)         #graph bar chart of Mahalanobis Distance
+   #need to find weighted averaged return
+   plt.xticks(rotation=50)                                                     #rotate x axis labels 50 degrees
+   plt.xlabel('Year')                                                          #label x axis Year
+   plt.ylabel('Index')                                                         #label y axis Index
+   plt.suptitle('Correlation Surprise Index')                                  #label title of graph Historical Turbulence Index Calculated from Daily Retuns of G20 Countries
+   plt.bar(Correlation_Surprise.index,Correlation_Surprise.values, width=2)     #graph bar chart of Mahalanobis Distance
    plt.show()
    
    

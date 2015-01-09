@@ -32,7 +32,6 @@ Figure5['Growth-Value']=Historical_Pricess_closed['IWF'].values-Historical_Price
 Figure5['Hedge Funds']=Historical_Pricess_closed['HDG'].values                 #Append Hedge Funds to DataFrame
 Figure5.save('returnsMD_Figure5')                                              #save Figure 5's DataFrame as returns Mahalanobis Distance Figure 5
 
-
 #Table 1
 symbols = ['GMWAX','AAT','IYF']                                                #Import Table 1 Data for Malanobis Distance Paper
 Start_Date,End_Date='1/1/1993','12/8/2014'                                     #MM,DD,YY
@@ -41,36 +40,24 @@ Historical_Pricess.save('Table_1')                                             #
 
 
         #Correlation Surprise
-#Exhibit 3: Times series data
-import pandas.io.data as web
-jpy = web.DataReader('DEXJPUS', 'fred')
-
 #Exhibit 5: US Equities,  European Equities, Currencies 
     #Equities 
-symbols = ['^GSPC','^OEX'] 
-Start_Date='10/20/2000'#MM,DD,YY
-End_Date='12/8/2014'#MM,DD,YY
-frequency='d'
+symbols = ['^GSPC','^OEX']                                                     #An example of the type of data required for Exhibit 5 US equities
+Start_Date,End_Date='10/20/2000','12/8/2014'#MM,DD,YY
 Historical_Prices = pdio.get_data_yahoo(symbols,start= Start_Date,end= End_Date) 
 Historical_Prices['Adj Close'].save('CorrelationSurprise_Exhibit5_USEquities')
     #European Equtiies 
-symbols = ['^FTSE','^ATX'] 
-Start_Date='10/20/2000'#MM,DD,YY
-End_Date='12/8/2014'#MM,DD,YY
-frequency='d'
+symbols = ['^FTSE','^ATX']                                                     #An example of the type of data required for Exhibit 5 Euro equities
+Start_Date,End_Date='10/20/2000','12/8/2014'#MM,DD,YY
 Historical_Prices = pdio.get_data_yahoo(symbols,start= Start_Date,end= End_Date) 
 Historical_Prices['Adj Close'].save('CorrelationSurprise_Exhibit5_EuropeanEquities')
     #Currency
-tstart= '10/20/2000'
+tstart= '10/20/2000'                                                           #An example of the type of data required for Exhibit 5 Currency
 tend= '10/20/2014'
 Currency= web.DataReader(["EXUSEU","EXUSUK"], 'fred', tstart, tend) 
 Currency.save('CorrelationSurprise_Exhibit5_Currency')
 
 
-
-
-
-#Currencies=pd.DataFrame(index=)
 
 
 
