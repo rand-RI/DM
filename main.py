@@ -6,6 +6,7 @@
 
 """STAGE 1: IMPORT LIBRARY"""
 import pandas as pd
+<<<<<<< HEAD
 import systemicRiskMeasures as srm                                             #Import Systemic Risk Measures library
 
 
@@ -123,11 +124,38 @@ SRM_VaR_and_Realised_Returns = srm.MahalanobisDist_Table3(Portfolios=SRM_Efficie
    #Systemic Risk Measures 
 #systemicRiskMeasure= [SRM_mahalanobis,SRM_correlationsurprise,SRM_absorptionratio]# group systemic risk measures
 #srm.print_systemic_Risk(systemicRiskMeasure,MSCIUS_PRICES)
+=======
+import datetime as dt 
+import numpy as np
+import pickle as pk
+>>>>>>> e08e397ccecda56be980cb9ac8a9c1712c7e6cb1
 
 
 
 
 
+<<<<<<< HEAD
+=======
+SRM_mahalanobis= srm.MahalanobisDist(returns)[0]#define Mahalanobis Distance Formula
+SRM_correlationsurprise= srm.Correlation_Surprise(returns)#define Correlation Surprise Score
+SRM_absorptionratio= srm.Absorption_Ratio(returns)#define Absorption Ratio
+
+#output = pk.open('data.pk1','wb')
+#pk.dump(data)
+
+# Creating data frame for systemic risk measures
+
+
+systemicRiskMeasure_df = pd.DataFrame(SRM_mahalanobis,SRM_correlationsurprise,SRM_absorptionratio)
+systemicRiskMeasure_df.columns = ['Mahanalobis','CorrelationSurprise','AbsorptionRatio']
+
+
+
+
+
+#systemicRiskMeasure= [SRM_mahalanobis,SRM_correlationsurprise,SRM_absorptionratio] # group systemic risk measures
+#srm.print_systemic_Risk(systemicRiskMeasure)
+>>>>>>> e08e397ccecda56be980cb9ac8a9c1712c7e6cb1
 
 
 
