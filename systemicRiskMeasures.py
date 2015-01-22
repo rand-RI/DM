@@ -70,7 +70,8 @@ def MahalanobisDist_Turbulent_Returns(MD_returns, Returns):
     non_Turbulent_Days=returns[returns['MD']<MD_returns.quantile(.75)[0]]
     non_Turbulent_Days= non_Turbulent_Days.drop('MD', 1)
     
-    Returns.drop('MD',1)
+    Returns=Returns.drop('MD',1)
+    
    
     return turbulent, non_turbulent, Turbulent_Days,non_Turbulent_Days
     
@@ -557,7 +558,8 @@ def Absorption_Ratio(Returns):
     import math as mth                                                         #import math
     
         #stage1: GATHER DAILY TRAIL LENGTH
-    time_series_of_500days=len(Returns)-500                               #collect data that is outside of initial 500day window
+    
+    time_series_of_500days=len(Returns)-500                              #collect data that is outside of initial 500day window
     
         #stage2: GENERATE ABSORPTION RATIO DATA
     plotting_data=[]                                                           #create list titled plot data
@@ -603,10 +605,10 @@ def Absorption_Ratio(Returns):
     plot_array= np.array(plotting_data)                                        #convert plotting_data into array
     dates= Returns[500:time_series_of_500days+500].index                  #gather dates index over 500 day window iterations
     Absorption_Ratio_daily=pd.DataFrame(plot_array,index=dates,columns=list('R'))#merge dates and Absorption ratio returns
-    Absorption_Ratio= Absorption_Ratio_daily
+    
     #Absorption_Ratio=Absorption_Ratio_daily.resample('M', how=None)#group daily data into monthly data
     
-    return  Absorption_Ratio, ev_vectors                                                  #print Absorption Ratio
+    return  Absorption_Ratio_daily, ev_vectors                                                  #print Absorption Ratio
 
 def Absorption_Ratio_VS_MSCI_Graph(MSCI, AR_returns):
     

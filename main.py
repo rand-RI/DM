@@ -6,7 +6,6 @@
 
 """STAGE 1: IMPORT LIBRARY"""
 import pandas as pd
-<<<<<<< HEAD
 import systemicRiskMeasures as srm                                             #Import Systemic Risk Measures library
 
 
@@ -63,31 +62,35 @@ MSCIUS_PRICES= pd.load('MSCIUSA')
 
 
 """STAGE 3: IMPORT SYSTEMIC RISK MEASURES AND RUN SIGNALS"""
+
 #Mahalanobis Distance
         #Input
 MD_input=EM_Asia_xIndia_returns           #Change this value for data required
         #Run
-SRM_mahalanobis= srm.MahalanobisDist(Returns=MD_input)                       
+SRM_mahalanobis= srm.MahalanobisDist(Returns=MD_input)   
 SRM_mahalanobis_turbulent_nonturbulent_days= srm.MahalanobisDist_Turbulent_Returns(MD_returns= SRM_mahalanobis, Returns=MD_input)
+MD_input= MD_input.drop('MD',1)
+EM_Asia_xIndia_returns = EM_Asia_xIndia_returns.drop('MD',1)    
         #Graph
 SRM_HistoricalTurbulenceIndexGraph= srm.HistoricalTurbulenceIndexGraph( Mah_Days=SRM_mahalanobis,  width=30, figsize=(10,2.5))
 
 #Correlation Surprise
         #Input
-Corr_Input= returns
+Corr_Input= EM_Asia_xIndia_returns
         #Run
 SRM_Correlation_Surprise=srm.Correlation_Surprise(Returns=Corr_Input)
 
 #Absorption Ratio
         #Input
-AR_input= EM_Asia_xIndia_returns
-Comparision_input= MSCIUS_PRICES
+AR_input= FamaFrench49
+Comparision_input= MSCIUS_PRICES #must be same length as AR
         #Run
 SRM_absorptionratio= srm.Absorption_Ratio(Returns= AR_input)                        #define Absorption Ratio
 SRM_Absorption_Ratio_Standardised_Shift= srm.Absorption_Ratio_Standardised_Shift(AR_Returns= SRM_absorptionratio[0])
 SRM_Absorption_Ratio_Standardised_Shift_monthly= SRM_Absorption_Ratio_Standardised_Shift.resample('M')
         #Graphs
-SRM_Absorption_Ratio_and_Stock_Prices_Graph= srm.Absorption_Ratio_VS_MSCI_Graph(MSCI=Comparision_input, AR_returns=SRM_absorptionratio[0])
+SRM_AR_plot= SRM_absorptionratio[0].plot(figsize=(10,4))
+#SRM_Absorption_Ratio_and_Stock_Prices_Graph= srm.Absorption_Ratio_VS_MSCI_Graph(MSCI=Comparision_input, AR_returns=SRM_absorptionratio[0])
 
 
 
@@ -114,69 +117,10 @@ SRM_VaR_and_Realised_Returns = srm.MahalanobisDist_Table3(Portfolios=SRM_Efficie
      #absorption Ratio_2 
 #SRM_Centraility= srm.AR_systemic_importance(AR=SRM_absorptionratio)
    
-   
-   
+    
 
 #PORBIT MODEL
 
-
-
-   #Systemic Risk Measures 
+  #Systemic Risk Measures 
 #systemicRiskMeasure= [SRM_mahalanobis,SRM_correlationsurprise,SRM_absorptionratio]# group systemic risk measures
 #srm.print_systemic_Risk(systemicRiskMeasure,MSCIUS_PRICES)
-=======
-import datetime as dt 
-import numpy as np
-import pickle as pk
->>>>>>> e08e397ccecda56be980cb9ac8a9c1712c7e6cb1
-
-
-
-
-
-<<<<<<< HEAD
-=======
-SRM_mahalanobis= srm.MahalanobisDist(returns)[0]#define Mahalanobis Distance Formula
-SRM_correlationsurprise= srm.Correlation_Surprise(returns)#define Correlation Surprise Score
-SRM_absorptionratio= srm.Absorption_Ratio(returns)#define Absorption Ratio
-
-#output = pk.open('data.pk1','wb')
-#pk.dump(data)
-
-# Creating data frame for systemic risk measures
-
-
-systemicRiskMeasure_df = pd.DataFrame(SRM_mahalanobis,SRM_correlationsurprise,SRM_absorptionratio)
-systemicRiskMeasure_df.columns = ['Mahanalobis','CorrelationSurprise','AbsorptionRatio']
-
-
-
-
-
-#systemicRiskMeasure= [SRM_mahalanobis,SRM_correlationsurprise,SRM_absorptionratio] # group systemic risk measures
-#srm.print_systemic_Risk(systemicRiskMeasure)
->>>>>>> e08e397ccecda56be980cb9ac8a9c1712c7e6cb1
-
-
-
-#sysRiskMeasure=0
-#for sysRiskMeasure in systemicRiskMeasure:
- #   fig= srm.print_systemic_Risk(systemicRiskMeasure[sysRiskMeasure])
-  #  fig.savefig("{}.jpg".format(sysRiskMeasure))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
