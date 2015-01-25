@@ -94,6 +94,21 @@ EM_Asia=pd.read_csv('EM_Asia_xIndia.csv', index_col=0)
 EM_Asia_timeseries_dataframe=srm.CreateDataFrameWithTimeStampIndex(DataFrame=EM_Asia)
 EM_Asia_timeseries_dataframe.save('EM_Asia_xIndia')
 
+USsectors=pd.read_csv('USsectors.csv', index_col=0)
+USsectors_timeseries_dataframe=srm.CreateDataFrameWithTimeStampIndex(DataFrame=USsectors)
+USsectors_timeseries_dataframe.save('USsectors')
+
+UKsectors=pd.read_csv('UKsectors.csv', index_col=0)
+UKsectors_timeseries_dataframe=srm.CreateDataFrameWithTimeStampIndex(DataFrame=UKsectors)
+UKsectors_timeseries_dataframe.save('UKsectors')
+
+JPNsectors=pd.read_csv('JAPsectors.csv', index_col=0)
+JPNsectors_timeseries_dataframe=srm.CreateDataFrameWithTimeStampIndex(DataFrame=JPNsectors)
+JPNsectors_timeseries_dataframe.save('JPNsectors')
+
+CANsectors=pd.read_csv('CANsectors.csv', index_col=0)
+CANsectors_timeseries_dataframe=srm.CreateDataFrameWithTimeStampIndex(DataFrame=CANsectors)
+CANsectors_timeseries_dataframe.save('CANsectors')
 
 
 

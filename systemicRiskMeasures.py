@@ -556,7 +556,8 @@ def Absorption_Ratio(Returns):
     import pandas as pd                                                        #import pandas    
     import numpy as np                                                         #import numpys  
     import math as mth                                                         #import math
-    
+    from sklearn.decomposition import PCA
+
         #stage1: GATHER DAILY TRAIL LENGTH
     
     time_series_of_500days=len(Returns)-500                              #collect data that is outside of initial 500day window
@@ -566,11 +567,12 @@ def Absorption_Ratio(Returns):
     for i in range(time_series_of_500days):
         
                 #stage1: CALCULATE EXPONENTIAL WEIGHTING
-        returns_500day= Returns[i:i+500]                                  #create 500 day trailing window        
-        EWMA_returns=pd.ewma(returns_500day, halflife=250)
-    
+        returns_500day= Returns[i:i+500]                                  #create 500 day trailing window      
+        centred_data= returns_500day.subtract(returns_500day.mean())       #Center Data
+        
+        """
             #stage2: CALCULATE COVARIANCE MATRIX
-        return_covariance= EWMA_returns.cov()                                  #Generate Covariance Matrix over 500 day window
+        return_covariance= centred_data.cov()                                  #Generate Covariance Matrix over 500 day window
     
             #stage3: CALCULATE EIGENVECTORS AND EIGENVALUES
         ev_values,ev_vector= np.linalg.eig(return_covariance)                  #generate eigenvalues and vectors over 500 day window 
@@ -585,11 +587,17 @@ def Absorption_Ratio(Returns):
         round_down_shape= mth.floor(shape*0.2)
        #round_down_shape= mth.floor(shape*0.2) #round shape to lowest integer
         ev_vectors= ev_vectors_sorted[:,0:round_down_shape]                    #collect 1/5th the number of assets in sample
-    
-            #stage6: CALCULATE ABSORPTION RATIO DATA
-        variance_of_ith_eigenvector= np.var(ev_vectors,axis=0).sum()
+        """
+        pca = PCA(n_components=mth.floor(Returns.shape[1]*0.2), whiten=False).fit(centred_data)
+
+        Eigenvalues= pca.explained_variance_ratio_/np.linalg.norm(pca.explained_variance_ratio_)        
+        
+                    #stage6: CALCULATE ABSORPTION RATIO DATA
+        variance_of_ith_eigenvector=np.sum(Eigenvalues/Eigenvalues.sum())
+
+        #variance_of_ith_eigenvector= np.var(Eigenvectors,axis=1).sum()
         #variance_of_ith_eigenvector= ev_vectors.diagonal()#fetch variance of ith eigenvector
-        variance_of_jth_asset= EWMA_returns.var().sum()                        #fetch variance of jth asset
+        variance_of_jth_asset= centred_data.var().sum()                        #fetch variance of jth asset
     
             #stage7: CONSTRUCT ABSORPTION RATIO FORMULA     
         numerator= variance_of_ith_eigenvector                                 #calculate the sum to n of variance of ith eigenvector
@@ -605,10 +613,10 @@ def Absorption_Ratio(Returns):
     plot_array= np.array(plotting_data)                                        #convert plotting_data into array
     dates= Returns[500:time_series_of_500days+500].index                  #gather dates index over 500 day window iterations
     Absorption_Ratio_daily=pd.DataFrame(plot_array,index=dates,columns=list('R'))#merge dates and Absorption ratio returns
-    
+    Absorption_Ratio_daily= pd.ewma(Absorption_Ratio_daily, halflife=250)
     #Absorption_Ratio=Absorption_Ratio_daily.resample('M', how=None)#group daily data into monthly data
     
-    return  Absorption_Ratio_daily, ev_vectors                                                  #print Absorption Ratio
+    return  Absorption_Ratio_daily #, Eigenvectors                                                  #print Absorption Ratio
 
 def Absorption_Ratio_VS_MSCI_Graph(MSCI, AR_returns):
     
@@ -845,4 +853,5 @@ def print_systemic_Risk(systemicRiskMeasure,MSCIUS_PRICES):
    #plt.show()
 """
  
+
  

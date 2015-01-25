@@ -41,6 +41,20 @@ S_P500= pd.load('S&P_500')
 EM_Asia_xIndia= pd.load('EM_Asia_xIndia')
 EM_Asia_xIndia_returns= srm.logreturns(Returns=EM_Asia_xIndia)
 
+US_sectors= pd.load('USsectors')
+US_sectors_returns= srm.logreturns(Returns=US_sectors)
+
+UK_sectors= pd.load('UKsectors')
+UK_sectors_returns= srm.logreturns(Returns=UK_sectors)
+
+JPN_sectors= pd.load('JPNsectors')
+JPN_sectors_returns= srm.logreturns(Returns=JPN_sectors)
+
+CAN_sectors= pd.load('CANsectors')
+CAN_sectors_returns= srm.logreturns(Returns=CAN_sectors)
+
+
+
 
 
 #Correlation Surprise
@@ -74,22 +88,25 @@ EM_Asia_xIndia_returns = EM_Asia_xIndia_returns.drop('MD',1)
         #Graph
 SRM_HistoricalTurbulenceIndexGraph= srm.HistoricalTurbulenceIndexGraph( Mah_Days=SRM_mahalanobis,  width=30, figsize=(10,2.5))
 
+
 #Correlation Surprise
         #Input
 Corr_Input= EM_Asia_xIndia_returns
         #Run
 SRM_Correlation_Surprise=srm.Correlation_Surprise(Returns=Corr_Input)
 
+
 #Absorption Ratio
         #Input
-AR_input= FamaFrench49
+AR_input= US_sectors_returns
 Comparision_input= MSCIUS_PRICES #must be same length as AR
         #Run
 SRM_absorptionratio= srm.Absorption_Ratio(Returns= AR_input)                        #define Absorption Ratio
-SRM_Absorption_Ratio_Standardised_Shift= srm.Absorption_Ratio_Standardised_Shift(AR_Returns= SRM_absorptionratio[0])
-SRM_Absorption_Ratio_Standardised_Shift_monthly= SRM_Absorption_Ratio_Standardised_Shift.resample('M')
+#SRM_Absorption_Ratio_Standardised_Shift= srm.Absorption_Ratio_Standardised_Shift(AR_Returns= SRM_absorptionratio[0])
+#SRM_Absorption_Ratio_Standardised_Shift_monthly= SRM_Absorption_Ratio_Standardised_Shift.resample('M')
         #Graphs
-SRM_AR_plot= SRM_absorptionratio[0].plot(figsize=(10,4))
+halflife=0
+SRM_AR_plot= SRM_absorptionratio.plot(figsize=(10,4))
 #SRM_Absorption_Ratio_and_Stock_Prices_Graph= srm.Absorption_Ratio_VS_MSCI_Graph(MSCI=Comparision_input, AR_returns=SRM_absorptionratio[0])
 
 
