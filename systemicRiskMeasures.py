@@ -567,37 +567,18 @@ def Absorption_Ratio(Returns):
     for i in range(time_series_of_500days):
         
                 #stage1: CALCULATE EXPONENTIAL WEIGHTING
-        returns_500day= Returns[i:i+500]                                  #create 500 day trailing window      
-        centred_data= returns_500day.subtract(returns_500day.mean())       #Center Data
+        window= Returns[i:i+500]                                  #create 500 day trailing window      
+        #centred_data= returns_500day.subtract(returns_500day.mean())       #Center Data
         
-        """
-            #stage2: CALCULATE COVARIANCE MATRIX
-        return_covariance= centred_data.cov()                                  #Generate Covariance Matrix over 500 day window
-    
-            #stage3: CALCULATE EIGENVECTORS AND EIGENVALUES
-        ev_values,ev_vector= np.linalg.eig(return_covariance)                  #generate eigenvalues and vectors over 500 day window 
-    
-            #Stage4: SORT EIGENVECTORS RESPECTIVE TO THEIR EIGENVALUES
-        ev_values_sort_high_to_low = ev_values.argsort()[::-1]                         
-        ev_values_sort=ev_values[ev_values_sort_high_to_low]                   #sort eigenvalues from highest to lowest
-        ev_vectors_sorted= ev_vector[:,ev_values_sort_high_to_low]             #sort eigenvectors corresponding to sorted eigenvalues
-    
-            #Stage5: COLLECT 1/5 OF EIGENVALUES
-        shape= ev_vectors_sorted.shape[0]                                      #collect shape of ev_vector matrix
-        round_down_shape= mth.floor(shape*0.2)
-       #round_down_shape= mth.floor(shape*0.2) #round shape to lowest integer
-        ev_vectors= ev_vectors_sorted[:,0:round_down_shape]                    #collect 1/5th the number of assets in sample
-        """
-        pca = PCA(n_components=mth.floor(Returns.shape[1]*0.2), whiten=False).fit(centred_data)
-
-        Eigenvalues= pca.explained_variance_ratio_/np.linalg.norm(pca.explained_variance_ratio_)        
+        pca = PCA(n_components= int(round(Returns.shape[1]*0.2)), whiten=False).fit(window)
+        Eigenvalues= pca.explained_variance_       
         
                     #stage6: CALCULATE ABSORPTION RATIO DATA
-        variance_of_ith_eigenvector=np.sum(Eigenvalues/Eigenvalues.sum())
+        variance_of_ith_eigenvector=Eigenvalues.sum()
 
         #variance_of_ith_eigenvector= np.var(Eigenvectors,axis=1).sum()
         #variance_of_ith_eigenvector= ev_vectors.diagonal()#fetch variance of ith eigenvector
-        variance_of_jth_asset= centred_data.var().sum()                        #fetch variance of jth asset
+        variance_of_jth_asset= window.var().sum()                        #fetch variance of jth asset
     
             #stage7: CONSTRUCT ABSORPTION RATIO FORMULA     
         numerator= variance_of_ith_eigenvector                                 #calculate the sum to n of variance of ith eigenvector
@@ -853,5 +834,30 @@ def print_systemic_Risk(systemicRiskMeasure,MSCIUS_PRICES):
    #plt.show()
 """
  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+"""
+#stage2: CALCULATE COVARIANCE MATRIX
+return_covariance= centred_data.cov()                                  #Generate Covariance Matrix over 500 day window
+ 
+#stage3: CALCULATE EIGENVECTORS AND EIGENVALUES
+ev_values,ev_vector= np.linalg.eig(return_covariance)                  #generate eigenvalues and vectors over 500 day window 
+  
+#Stage4: SORT EIGENVECTORS RESPECTIVE TO THEIR EIGENVALUES
+ev_values_sort_high_to_low = ev_values.argsort()[::-1]                         
+ev_values_sort=ev_values[ev_values_sort_high_to_low]                   #sort eigenvalues from highest to lowest
+ev_vectors_sorted= ev_vector[:,ev_values_sort_high_to_low]             #sort eigenvectors corresponding to sorted eigenvalues
+        
+#Stage5: COLLECT 1/5 OF EIGENVALUES
+shape= ev_vectors_sorted.shape[0]                                      #collect shape of ev_vector matrix
+round_down_shape= mth.floor(shape*0.2)
+#round_down_shape= mth.floor(shape*0.2) #round shape to lowest integer
+ev_vectors= ev_vectors_sorted[:,0:round_down_shape]                    #collect 1/5th the number of assets in sample
+"""
 
  

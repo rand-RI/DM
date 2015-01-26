@@ -53,10 +53,6 @@ JPN_sectors_returns= srm.logreturns(Returns=JPN_sectors)
 CAN_sectors= pd.load('CANsectors')
 CAN_sectors_returns= srm.logreturns(Returns=CAN_sectors)
 
-
-
-
-
 #Correlation Surprise
     #Import US_Equities, Euro_Equities and Currency data
 Exhibit5_USEquities= pd.load('Exhibit5_US_Equities')        #Import Correlation Surprise Exhibit5 US Equities
@@ -98,7 +94,7 @@ SRM_Correlation_Surprise=srm.Correlation_Surprise(Returns=Corr_Input)
 
 #Absorption Ratio
         #Input
-AR_input= US_sectors_returns
+AR_input= EM_Asia_xIndia_returns 
 Comparision_input= MSCIUS_PRICES #must be same length as AR
         #Run
 SRM_absorptionratio= srm.Absorption_Ratio(Returns= AR_input)                        #define Absorption Ratio
@@ -108,7 +104,6 @@ SRM_absorptionratio= srm.Absorption_Ratio(Returns= AR_input)                    
 halflife=0
 SRM_AR_plot= SRM_absorptionratio.plot(figsize=(10,4))
 #SRM_Absorption_Ratio_and_Stock_Prices_Graph= srm.Absorption_Ratio_VS_MSCI_Graph(MSCI=Comparision_input, AR_returns=SRM_absorptionratio[0])
-
 
 
 
