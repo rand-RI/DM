@@ -9,6 +9,7 @@ def CreateDataFrameWithTimeStampIndex(DataFrame):
     New_DataFrame=pd.DataFrame(DataFrame.values, index=New_index, columns=DataFrame.columns)    
     
     return New_DataFrame
+   #---------------------------------------------------------------------------
 
 
 def logreturns(Returns):    #GENERATED LOGARITHMIC RETURNS
@@ -20,6 +21,7 @@ def logreturns(Returns):    #GENERATED LOGARITHMIC RETURNS
     
     return   resampled_data                                                    #Return Log returns
 
+   #---------------------------------------------------------------------------
 
                 ##Systemic Risk Measures##
 
@@ -53,6 +55,8 @@ def MahalanobisDist(Returns):                                                  #
     #MD_monthly= MD_daily.resample('M')                                         #resample data by average either as daily, monthly, yearly(ect.) 
     
     return    MD_daily                                                         #Return Malanobis Distance resampled returns, Malanobis Distance daily returns,  Turbulent returns and non-Turbulent returns
+   #---------------------------------------------------------------------------
+
 
 def MahalanobisDist_Turbulent_Returns(MD_returns, Returns):
     
@@ -74,6 +78,7 @@ def MahalanobisDist_Turbulent_Returns(MD_returns, Returns):
     
    
     return turbulent, non_turbulent, Turbulent_Days,non_Turbulent_Days
+   #---------------------------------------------------------------------------
     
 
    
@@ -96,6 +101,7 @@ def HistoricalTurbulenceIndexGraph( Mah_Days,  width, figsize):
     plt.show()
     fig.savefig('Historical_Turbulence_Index_Calcualted_from_ Monthly_Returns.png')
     return 
+   #---------------------------------------------------------------------------
 
 
 
@@ -159,6 +165,8 @@ def MahalanobisDist_Table1(Market_Returns):
             
                    
     return Persistence_of_Turbulence_for_next_5_10_20                                #Return Table 1,  return Top_75 Percentile of Normalised Data
+   #---------------------------------------------------------------------------
+
     
 def MahalanobisDist_Table2(Asset_Class,Weights):
     
@@ -207,6 +215,8 @@ def MahalanobisDist_Table2(Asset_Class,Weights):
     
     
     return Table_2*100, Portfolios
+   #---------------------------------------------------------------------------
+
     
      
 def MahalanobisDist_Table3(Portfolios, beta): 
@@ -236,6 +246,8 @@ def MahalanobisDist_Table3(Portfolios, beta):
 
                 
     return  Table_3*100   
+   #---------------------------------------------------------------------------
+
 
 def regression(Primarily_return, Secondary_returns):
     from scipy import stats
@@ -245,116 +257,139 @@ def regression(Primarily_return, Secondary_returns):
     slope, intercept, r_value, p_value, std_err = stats.linregress(x,y)
   
     return intercept,slope, std_err, r_value, p_value, std_err
+   #---------------------------------------------------------------------------
 
     
+def shrinkage_ret_est(sample):
+    import numpy as np
+        
+    u= sample.mean().mean()
+    returns=sample
+        
+    #Calculate u_m (shrinkage target)        
+    e_size= np.zeros(shape=(1,len(sample.columns)))
+    e_filled= e_size.fill(1)
+    e= np.transpose(e_size)
+
+    Covariance_Matrix_inverse= np.linalg.inv(returns.cov())
+ 
+    u_m_numerator= np.dot((np.transpose(e)*Covariance_Matrix_inverse),u)
+    u_m_denominator= np.dot((np.transpose(e)*Covariance_Matrix_inverse),e)
+    u_m=np.divide(u_m_numerator, u_m_denominator)[0][0]                             #grab value out from array so it is a number
+
+
+    n=len(sample.columns)
+    T=len(returns)
+    w_numerator= n+2
+    w_denominator=n+2+T*(np.dot(np.transpose(u-u_m*e),(np.dot(Covariance_Matrix_inverse,u-u_m*e))))
+    w=np.divide(w_numerator, w_denominator)[0][0]
+
+    u_s=w*u_m +(1-w)*u
     
+    #---------------------------------------------------------------------------
+    return u_s   
+   #---------------------------------------------------------------------------
+    
+
+def shrinking_cov(Market_Portfolio):
+   
+    import numpy as np
+
+    x=Market_Portfolio
+
+    t= x.shape[0]
+    n= x.shape[1]
+    meanx= x.mean(0)
+    e_size= np.zeros(shape=(1,x.shape[0]))
+    e_filled= e_size.fill(1)
+    e= np.transpose(e_size)
+    x=x-meanx*e
+    xmkt= np.transpose(np.transpose(x).mean(0))
+    xmkt=np.transpose((xmkt*e[1:2]))
+    
+    sample= np.divide((np.cov(np.transpose((np.concatenate((x, xmkt), 1)))))*(t-1),t) 
+    covmkt= (sample[:,n][0:n])
+    covmkt=np.reshape(covmkt, (n, 1))
+    varmkt= sample[:,n][n:n+1]
+    sample= sample[:,0:n]
+    sample= sample[0:n,:]
+    prior=(covmkt*np.transpose(covmkt))/varmkt
+    np.fill_diagonal(prior, np.diagonal(sample))
+
+    #shrinkage
+    m_size= np.zeros(shape=(1,n))
+    m_filled= m_size.fill(1)
+    matrix_ones= m_size
+
+    c= np.square(np.linalg.norm(sample-prior, ord= 'fro'))
+    y= np.square(x)
+    p= (1./t)*np.dot(np.transpose(y),y).sum(0).sum() - np.square(sample).sum(0).sum()
+    rdiag=(1./t)*np.square(y).sum(0).sum() - np.square(np.diagonal(sample)).sum()
+    z= x*xmkt
+    v1= (1./t)*np.dot(np.transpose(y),z) - np.dot(covmkt,matrix_ones)*sample                #matrix ones is 1,49 matrix of ones
+    roff1= ((v1*np.transpose(np.dot(covmkt,matrix_ones))).sum(0).sum())/varmkt - ((np.reshape(v1.diagonal(),(n,1))*covmkt).sum())/varmkt
+    v3=(1./t)*np.dot(np.transpose(z),z) - varmkt*sample
+    roff3=((v3*(covmkt*np.transpose(covmkt))).sum(0).sum())/np.square(varmkt) -((np.reshape(v3.diagonal(),(n,1))*np.square(covmkt)).sum())/np.square(varmkt)
+    roff= 2*roff1 - roff3
+    r= rdiag+roff
+    k=(p-r)/c
+    shrinkage= np.reshape(np.max(np.reshape(np.min(k/t),(1,1))),(1,1))
+
+    sigma= shrinkage*prior + (1-shrinkage)*sample
+
+    return sigma
+   #---------------------------------------------------------------------------
+
 def MahalanobisDist_Table4(portfolio, weights): 
     
     
-#Step1:  Create Equilibrium Returns
    """Equilibrium Returns is constructed as a portfolio 
    of 60% US equities, 30% T bonds and 10% US Corporate Bonds"""
 
    import numpy as np
-
    
-     #Step1: Estimate the unconditional expected returns as equilibrium returns  
-   market_portfolio= portfolio *weights
+   #Step1:  Estimate unconditional expected returns
+   market_portfolio= portfolio*weights    #equilibrium returns on the basis of full training sample
+   market_portfolio_mean= market_portfolio.mean().mean()
+   #---------------------------------------------------------------------------
+   
+   #Step2: Estimate Conditional Expected returns
+   full_training_sample=portfolio
+       #Compute Average returns of the Turbulent subsample
+              #Generate Turbulent Subsample
+   MahalanobisDist_returns= MahalanobisDist(Returns= full_training_sample)
+   Turbulent_days= MahalanobisDist_Turbulent_Returns(MD_returns= MahalanobisDist_returns, Returns=full_training_sample)[2]
+   full_training_sample= full_training_sample.drop('MD',1)
+               #Estimate return after shrinkage
+   u_t= shrinkage_ret_est(Turbulent_days)
+   
+          #Compute Average returns of the Full training sample
+               #Estimate return after shrinkage
+   u_f= shrinkage_ret_est(full_training_sample)
+   
+       #Blend difference between compressed sub and full sample with equilibrium returns
+   Turbulent_ratio, Non_Turbulent_ratio  = (float(len(Turbulent_days))/(len(full_training_sample))),(1-(float(len(Turbulent_days))/(len(full_training_sample))))
+   
+   u_c_t= Turbulent_ratio*u_t + Non_Turbulent_ratio*market_portfolio_mean
+   u_c_f= 0.5*u_f + 0.5*market_portfolio_mean
+   #---------------------------------------------------------------------------
+   
+   #step3: Estimate unconditional covariances by shrinking sample covariance
+   est_uncon_cov= shrinking_cov(Market_Portfolio=full_training_sample)   
+   #---------------------------------------------------------------------------
 
-    #Step2: estimate the conditonal expected returns
-       # Calculate average returns of the turbulent subsample
-   MahalanobisDist_returns= MahalanobisDist(Returns= market_portfolio)
-   Turbulent_days= MahalanobisDist_Turbulent_Returns(MD_returns= MahalanobisDist_returns, Returns=market_portfolio)[2] 
-   Average_returns_of_the_turbulent_subsample= Turbulent_days.mean().mean()
-   market_portfolio= market_portfolio.drop('MD',1)       
-        #Calculate average reutns of the full training sample
-   average_returns_of_the_full_training_sample= market_portfolio.mean().mean()
-    
-   equilibrium_return_averages= Average_returns_of_the_turbulent_subsample, average_returns_of_the_full_training_sample
-   equilibrium_return= Turbulent_days, market_portfolio
-    
-       
-     #Step3: Calculate shrinkage target
-   u_s=[]    
-   for i in range(len(equilibrium_return_averages)):
-       u= equilibrium_return_averages[i]
-       returns=equilibrium_return[i]
-        
-       #Calculate u_m (shrinkage target)        
-       e_size= np.zeros(shape=(1,len(market_portfolio.columns)))
-       e_filled= e_size.fill(1)
-       e= np.transpose(e_size)
-
-       Covariance_Matrix_inverse= np.linalg.inv(returns.cov())
-
-       u_m_numerator= np.dot((np.transpose(e)*Covariance_Matrix_inverse),u)
-       u_m_denominator= np.dot((np.transpose(e)*Covariance_Matrix_inverse),e)
-       u_m=np.divide(u_m_numerator, u_m_denominator)[0][0]                             #grab value out from array so it is a number
-
-
-       n=len(market_portfolio.columns)
-       T=len(returns)
-       w_numerator= n+2
-       w_denominator=n+2+T*(np.dot(np.transpose(u-u_m*e),(np.dot(Covariance_Matrix_inverse,u-u_m*e))))
-       w=np.divide(w_numerator, w_denominator)[0][0]
-
-       u_s_average_returns_of_the_turbulent_sunsample=w*u_m +(1-w)*u
-       u_s.append(u_s_average_returns_of_the_turbulent_sunsample)
-   #Blend returns
-   u_c_f= 0.5*u_s[1] + 0.5*equilibrium_return_averages[1]
-   u_c_t= (float(len(Turbulent_days))/(len(market_portfolio)))*u_s[0] + (1-(float(len(Turbulent_days))/(len(market_portfolio))))*equilibrium_return_averages[1]
-
-     
-
-   return  u_c_f, u_c_t
-
-
-def shrinking_cov(Market_Portfolio, Regress_test):
-    
-    import numpy as np
-       
-    #Shrinking the sample covariance matrix
-       #S
-    T=len(Market_Portfolio)
-    X= np.transpose(np.array(Market_Portfolio))
-    i_size= np.zeros(shape=(1,X.shape[1]))
-    i_filled= i_size.fill(1)
-    i= np.transpose(i_size)
-    I= np.identity(X.shape[1])
-    S= np.dot(np.dot((1./T)*X,(I-(1./T)*i*np.transpose(i))),np.transpose(np.array(X)))
-    
-       
-    F=[]
-    for i in range(len(Market_Portfolio.columns)):
-        reg= regression(Primarily_return= Regress_test.values, Secondary_returns= Market_Portfolio.iloc[:,i:i+1].values)       
-        s= reg[0]
-        B=  reg[1]
-        D=  reg[2]
-        F_ith= s*B*np.tranpose(B) +D
-        F.append(F_ith)
-
-       #S^
-       #k=
-       #T=len(market_portfolio)
-       #F=F
-       #S=S
-
-        # w       
-       #Covariance_Matrix_inverse= np.linalg.inv(market_portfolio.cov())
-       #i_size= np.zeros(shape=(1,len(market_portfolio.columns)))
-       #i_filled= e_size.fill(1)
-       #i= np.transpose(e_size)
-       #Covariance_Matrix_inverse= np.linalg.inv(returns.cov())
-       #A= np.dot((np.transpose(i)*Covariance_Matrix_inverse),i)
-       #B= np.dot((np.transpose(e)*Covariance_Matrix_inverse),u)
-       #C= np.dot((np.transpose(u)*Covariance_Matrix_inverse),u)
-       #q=
-       
+   #step4: Estimate the conditioned covariances
+   full_sample_covariance= full_training_sample.cov() 
+   est_uncon_cov= Turbulent_ratio*shrinking_cov(Market_Portfolio=Turbulent_days)+ Non_Turbulent_ratio*full_sample_covariance
+   #---------------------------------------------------------------------------
       
-    return S, F
-
-
-
+   return      
+    
+    
+   #---------------------------------------------------------------------------
+   #---------------------------------------------------------------------------
+   #---------------------------------------------------------------------------
+   #---------------------------------------------------------------------------
     
     
 #Journal Article: Kinlaw and Turkington - 2012 - Correlation Surprise
@@ -412,6 +447,7 @@ def Correlation_Surprise(Returns):
     
     return  Corre_Surprise_Daily, Mag_Surprise_Daily               # Return Monthly Correlation Surprise Returns,  Monthly Magnitude Surprise returns, daily Correlation Surprise returns and daily magnitude surprise returns
 
+   #---------------------------------------------------------------------------
 
     
 
@@ -458,6 +494,7 @@ def Conditional_ave_magn_sur_on_day_of_the_reading(Exhibit5_USEquities, Exhibit5
     
     return Table_2, MS_20_CS_less_1,MS_20_CS_greater_1                           #There returns are like this because no Correlation Surprise is greater than 1 within the top 20$ of mangitude surprise returns
             
+   #---------------------------------------------------------------------------
 
 
 def Conditional_ave_magn_sur_on_day_after_reading(Exhibit5_USEquities, Exhibit5_Euro_Equities, Exhibit5_Currency):
@@ -539,12 +576,22 @@ def Conditional_ave_magn_sur_on_day_after_reading(Exhibit5_USEquities, Exhibit5_
     
     
     return  Table_6
-        
+    #---------------------------------------------------------------------------
+       
 
 def Correlation_Surprise_Table_Exhbit7(): 
     
             
     return    
+  
+ 
+   #---------------------------------------------------------------------------
+   #---------------------------------------------------------------------------
+   #---------------------------------------------------------------------------
+   #---------------------------------------------------------------------------
+   #---------------------------------------------------------------------------
+
+
 
 #Journal Article: Kritzman et al. - 2011 - Principal Components as a Measure of Systemic Risk
 #http://www.mas.gov.sg/~/media/resource/legislation_guidelines/insurance/notices/GICS_Methodology.pdf
