@@ -7,7 +7,8 @@ def CreateDataFrameWithTimeStampIndex(DataFrame):
         timestamp= datetime.datetime.strptime(DataFrame.index[i],'%d/%m/%Y')
         New_index.append(timestamp)
     New_DataFrame=pd.DataFrame(DataFrame.values, index=New_index, columns=DataFrame.columns)    
-    
+  
+  #--------------------------------------------------------------------------- 
     return New_DataFrame
    #---------------------------------------------------------------------------
 
@@ -18,9 +19,9 @@ def logreturns(Returns):    #GENERATED LOGARITHMIC RETURNS
         
     returns = np.log(Returns/Returns.shift(1)).dropna()  #Generate log returns
     resampled_data=returns.resample('d').dropna()                              #Choose if Daily, Monthly, Yearly(ect) dataframe is required
-    
+  
+  #--------------------------------------------------------------------------- 
     return   resampled_data                                                    #Return Log returns
-
    #---------------------------------------------------------------------------
 
                 ##Systemic Risk Measures##
@@ -53,7 +54,8 @@ def MahalanobisDist(Returns):                                                  #
     md_array= np.array(md)                                                     #Translate md List type to md Numpy Array type in order to join values into a Dataframe
     MD_daily=pd.DataFrame(md_array,index=dates,columns=list('R'))              #Join Dataframe index and Numpy array back together
     #MD_monthly= MD_daily.resample('M')                                         #resample data by average either as daily, monthly, yearly(ect.) 
-    
+   
+   #---------------------------------------------------------------------------
     return    MD_daily                                                         #Return Malanobis Distance resampled returns, Malanobis Distance daily returns,  Turbulent returns and non-Turbulent returns
    #---------------------------------------------------------------------------
 
@@ -76,11 +78,10 @@ def MahalanobisDist_Turbulent_Returns(MD_returns, Returns):
     
     Returns=Returns.drop('MD',1)
     
-   
+   #---------------------------------------------------------------------------
     return turbulent, non_turbulent, Turbulent_Days,non_Turbulent_Days
    #---------------------------------------------------------------------------
     
-
    
 
 def HistoricalTurbulenceIndexGraph( Mah_Days,  width, figsize):
@@ -100,6 +101,7 @@ def HistoricalTurbulenceIndexGraph( Mah_Days,  width, figsize):
     plt.legend()
     plt.show()
     fig.savefig('Historical_Turbulence_Index_Calcualted_from_ Monthly_Returns.png')
+    #---------------------------------------------------------------------------    
     return 
    #---------------------------------------------------------------------------
 
@@ -256,6 +258,7 @@ def regression(Primarily_return, Secondary_returns):
     y=Secondary_returns
     slope, intercept, r_value, p_value, std_err = stats.linregress(x,y)
   
+  #---------------------------------------------------------------------------
     return intercept,slope, std_err, r_value, p_value, std_err
    #---------------------------------------------------------------------------
 
@@ -295,7 +298,7 @@ def shrinking_cov(Market_Portfolio):
    
     import numpy as np
 
-    x=Market_Portfolio
+    x=Market_Portfolio.values
 
     t= x.shape[0]
     n= x.shape[1]
@@ -336,7 +339,8 @@ def shrinking_cov(Market_Portfolio):
     shrinkage= np.reshape(np.max(np.reshape(np.min(k/t),(1,1))),(1,1))
 
     sigma= shrinkage*prior + (1-shrinkage)*sample
-
+    
+    #---------------------------------------------------------------------------
     return sigma
    #---------------------------------------------------------------------------
 
@@ -346,8 +350,7 @@ def MahalanobisDist_Table4(portfolio, weights):
    """Equilibrium Returns is constructed as a portfolio 
    of 60% US equities, 30% T bonds and 10% US Corporate Bonds"""
 
-   import numpy as np
-   
+      
    #Step1:  Estimate unconditional expected returns
    market_portfolio= portfolio*weights    #equilibrium returns on the basis of full training sample
    market_portfolio_mean= market_portfolio.mean().mean()
@@ -383,7 +386,7 @@ def MahalanobisDist_Table4(portfolio, weights):
    est_uncon_cov= Turbulent_ratio*shrinking_cov(Market_Portfolio=Turbulent_days)+ Non_Turbulent_ratio*full_sample_covariance
    #---------------------------------------------------------------------------
       
-   return      
+   return     u_c_t, u_c_f, est_uncon_cov
     
     
    #---------------------------------------------------------------------------
@@ -702,6 +705,27 @@ def Absorption_Ratio_and_Drawdowns(delta_AR):    #how to measure all drawdowns
               prevmaxi = maxi
               prevmini = i
     return (delta_AR['R'][prevmaxi], delta_AR['R'][prevmini])
+
+
+def plot_AR(AR):
+    
+    import matplotlib.pyplot as plt
+   
+    plt.figure( figsize=(10,4))    
+    plt.suptitle('Absorption Ratio') 
+    plt.xticks(rotation=50)
+    plt.xlabel('Year')#label x axis Year
+    plt.ylabel('AR')
+    x1,x2,y1,y2 = plt.axis()
+    plt.axis((x1,x2,0.5,1))
+    plt.plot(AR.index,AR.values)
+    plt.fill_between(0.5,AR.values, facecolor='blue', alpha=0.5)
+    
+    
+    plt.show()
+
+    return 
+
 
 """
 def AR_systemic_importance(AR):

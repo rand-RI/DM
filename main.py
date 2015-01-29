@@ -56,14 +56,15 @@ JPN_sectors_returns= srm.logreturns(Returns=JPN_sectors)
 
 CAN_sectors= pd.load('CANsectors')
 CAN_sectors_returns= srm.logreturns(Returns=CAN_sectors)
+#-------------------------
 
 """Correlation Surprise"""
     #Import US_Equities, Euro_Equities and Currency data
 Exhibit5_USEquities= pd.load('Exhibit5_US_Equities')        #Import Correlation Surprise Exhibit5 US Equities
 Exhibit5_Euro_Equities=pd.load('Exhibit5_Euro_Equities')#Import Correlation Surprise Exhibit5 European Equities
 Exhibit5_Currency=pd.load('Exhibit5_Currency')             #Import Correlation Surprise Exhibit5 Currency
+#-------------------------
 
-    
 """Absorption Ratio"""
     #Import sectors of the US economy
 FamaFrench49= pd.load('FenFrench49')                                           #51 sectors
@@ -72,35 +73,38 @@ MSCIUS_PRICES= pd.load('MSCIUSA')                                              #
     #Exhibit_9 imported data for a dynamic trading strategy in which has exposure to government bonds and stocks
 Treasury_bonds= pd.load('Treasury_Bonds_AR_Exhibit_9')['Adj Close']
 MSCIUS_PRICES= pd.load('MSCIUSA') 
+#-------------------------
 #----------------------------------------------------------------------------------------------------------------------------------
 
 
 """STAGE 3: 
 IMPORT SYSTEMIC RISK MEASURES AND RUN SIGNALS"""
 #-------------------------
+
 """Mahalanobis Distance"""
         #Input
-MD_input=EM_Asia_xIndia_returns           #Change this value for data required
+MD_input=US_sectors_returns           #Change this value for data required
         #Run
 SRM_mahalanobis= srm.MahalanobisDist(Returns=MD_input)   
 SRM_mahalanobis_turbulent_nonturbulent_days= srm.MahalanobisDist_Turbulent_Returns(MD_returns= SRM_mahalanobis, Returns=MD_input)
 MD_input= MD_input.drop('MD',1)
-EM_Asia_xIndia_returns = EM_Asia_xIndia_returns.drop('MD',1)    
+US_sectors_returns  = US_sectors_returns.drop('MD',1)    
         #Graph
 SRM_HistoricalTurbulenceIndexGraph= srm.HistoricalTurbulenceIndexGraph( Mah_Days=SRM_mahalanobis,  width=30, figsize=(10,2.5))
-
+#-------------------------
 
 """Correlation Surprise"""
         #Input
 Corr_Input= EM_Asia_xIndia_returns
         #Run
 SRM_Correlation_Surprise=srm.Correlation_Surprise(Returns=Corr_Input)
-
+#-------------------------
 
 """Absorption Ratio"""
         #Input
-AR_input= EM_Asia_xIndia_returns 
-Comparision_input= MSCIUS_PRICES #must be same length as AR
+AR_input= US_sectors_returns 
+Comparision_input= US_sectors_returns['FTSE USA H/C EQ & SVS - PRICE INDEX']
+# MSCIUS_PRICES #must be same length as AR
         #Run
 SRM_absorptionratio= srm.Absorption_Ratio(Returns= AR_input)                        #define Absorption Ratio
 #SRM_Absorption_Ratio_Standardised_Shift= srm.Absorption_Ratio_Standardised_Shift(AR_Returns= SRM_absorptionratio[0])
@@ -109,25 +113,28 @@ SRM_absorptionratio= srm.Absorption_Ratio(Returns= AR_input)                    
 halflife=0
 SRM_AR_plot= SRM_absorptionratio.plot(figsize=(10,4))
 #SRM_Absorption_Ratio_and_Stock_Prices_Graph= srm.Absorption_Ratio_VS_MSCI_Graph(MSCI=Comparision_input, AR_returns=SRM_absorptionratio[0])
+#SRM_AR_vs_Market_plot= srm.plot_AR(AR=SRM_absorptionratio)
+#-------------------------
 #----------------------------------------------------------------------------------------------------------------------------------
-
-
 
 """Stage4: 
 RUN Empirical Analysis"""
 #-------------------------
 """Mahalanobis Distance"""
 #SRM_Persistence_of_Turbulence= srm.MahalanobisDist_Table1(Market_Returns=Table_1_returns)
-SRM_Efficient_Portfolios=srm.MahalanobisDist_Table2(Asset_Class= Table_2_Asset_Classes, Weights=portfolio_weights) #need to add [0] to get Table
-SRM_VaR_and_Realised_Returns = srm.MahalanobisDist_Table3(Portfolios=SRM_Efficient_Portfolios[1], beta=0.01)
+#SRM_Efficient_Portfolios=srm.MahalanobisDist_Table2(Asset_Class= Table_2_Asset_Classes, Weights=portfolio_weights) #need to add [0] to get Table
+#SRM_VaR_and_Realised_Returns = srm.MahalanobisDist_Table3(Portfolios=SRM_Efficient_Portfolios[1], beta=0.01)
 #SRM_Modified_Mean_Variance_Optimization= srm.MahalanobisDist_Table4(portfolio=Equilbrium_returns, weights=equilibrium_Weights)
-#SRM_shrink_cov=  srm.shrinking_cov(Market_Portfolio=Equilbrium_returns*equilibrium_Weights,Regress_test= returns.iloc[:,4:5] )
 
+SRM_Mean_Var= srm.MahalanobisDist_Table4(portfolio=Equilbrium_returns, weights=equilibrium_Weights)
+#SRM_shrink_cov=  srm.shrinking_cov(Market_Portfolio=Equilbrium_returns*equilibrium_Weights,Regress_test= returns.iloc[:,4:5] )
+#-------------------------
     
     
 """Correlation Surprise"""
     #Conditional_ave_magn_sur_on_day_of_the_reading= srm.Conditional_ave_magn_sur_on_day_of_the_reading(Exhibit5_USEquities, Exhibit5_Euro_Equities, Exhibit5_Currency)[0] # Import Exhibit 5
     #Correlation_Surprise_Exhibit_6= srm.Conditional_ave_magn_sur_on_day_after_reading(Exhibit5_USEquities, Exhibit5_Euro_Equities, Exhibit5_Currency)
+#-------------------------
 
 """Absorption Ratio """
     #AR_and_Drawdowns= srm.Absorption_Ratio_and_Drawdowns(delta_AR=SRM_Absorption_Ratio_Standardised_Shift)
@@ -136,7 +143,7 @@ SRM_VaR_and_Realised_Returns = srm.MahalanobisDist_Table3(Portfolios=SRM_Efficie
      #absorption Ratio_2 
 #SRM_Centraility= srm.AR_systemic_importance(AR=SRM_absorptionratio)
    
-    
+#-------------------------    
 
 #PORBIT MODEL
 
