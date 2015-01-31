@@ -765,7 +765,7 @@ def plot_AR_ALL(US, UK, JPN, halflife):
     JPN_input =Absorption_Ratio(Returns= JPN, halflife=halflife)  
     
     plt.figure(figsize=(10,3))
-    x1,x2,y1,y2 = plt.axis()
+    y1,y2 = plt.yaxis()
     plt.axis((x1,x2,0.5,1))
     plt.xlabel('Year')
     plt.ylabel('Absorption Ratio')
