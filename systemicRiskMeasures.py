@@ -344,20 +344,25 @@ def shrinking_cov(Market_Portfolio):
     return sigma
    #---------------------------------------------------------------------------
 
-def MahalanobisDist_Table4(portfolio, weights): 
+def MahalanobisDist_Table4(portfolio, full_trailing): 
     
     
    """Equilibrium Returns is constructed as a portfolio 
    of 60% US equities, 30% T bonds and 10% US Corporate Bonds"""
-
+   full_training_sample=full_trailing
       
    #Step1:  Estimate unconditional expected returns
-   market_portfolio= portfolio*weights    #equilibrium returns on the basis of full training sample
+   market_portfolio= portfolio    #equilibrium returns on the basis of full training sample
+  # market_portfolio_based_full= 
+   
+   
+   
+   
    market_portfolio_mean= market_portfolio.mean().mean()
    #---------------------------------------------------------------------------
    
    #Step2: Estimate Conditional Expected returns
-   full_training_sample=portfolio
+   full_training_sample=full_trailing
        #Compute Average returns of the Turbulent subsample
               #Generate Turbulent Subsample
    MahalanobisDist_returns= MahalanobisDist(Returns= full_training_sample)
@@ -710,21 +715,52 @@ def Absorption_Ratio_and_Drawdowns(delta_AR):    #how to measure all drawdowns
 def plot_AR(AR):
     
     import matplotlib.pyplot as plt
-   
-    plt.figure( figsize=(10,4))    
-    plt.suptitle('Absorption Ratio') 
+    import numpy as np
+    
+    plt.figure( figsize=(10,3))    
+    plt.suptitle('Absorption Ratio',fontsize=12) 
     plt.xticks(rotation=50)
     plt.xlabel('Year')#label x axis Year
-    plt.ylabel('AR')
     x1,x2,y1,y2 = plt.axis()
     plt.axis((x1,x2,0.5,1))
-    plt.plot(AR.index,AR.values)
-    plt.fill_between(0.5,AR.values, facecolor='blue', alpha=0.5)
+    x=AR.index
+    y=AR.values
+    plt.plot(x,y)
+    #cannot seem to find out how to colour this?
     
-    
+
     plt.show()
 
     return 
+
+
+def plot_AR_ALL(US, UK, JPN):
+        
+    import matplotlib.pyplot as plt
+    
+    US_input= Absorption_Ratio(Returns= US)
+    UK_input =Absorption_Ratio(Returns= UK)
+    JPN_input =Absorption_Ratio(Returns= JPN)  
+    
+    plt.figure(figsize=(10,3))
+    x1,x2,y1,y2 = plt.axis()
+    plt.axis((x1,x2,0.5,1))
+    plt.xlabel('Year')
+    plt.ylabel('Absorption Ratio')
+    plt.plot(US_input.index,US_input.values, label="US", linewidth=2, color = '0.2')
+    plt.plot(UK_input.index, UK_input.values, label="UK", linewidth=3, linestyle='--', color = '0.1')
+    plt.plot(JPN_input.index, JPN_input.values, label="JPN", linewidth=4, linestyle='-.', color = '0.05')
+    plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)  
+    plt.grid()
+    
+    
+    
+    plt.show()
+    
+    return
+
+
+
 
 
 """

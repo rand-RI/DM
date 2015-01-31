@@ -39,6 +39,7 @@ portfolio_weights=WeightsC,WeightsM,WeightsA
 equilibrium_Weights=[0.1,0.6,0.3]
 Equilbrium_returns= returns[['EFA','TIP','VNQ']]
 S_P500= pd.load('S&P_500')
+S_P500_returns= srm.logreturns(Returns=S_P500)
 
 
 #Latex Figures
@@ -111,9 +112,10 @@ SRM_absorptionratio= srm.Absorption_Ratio(Returns= AR_input)                    
 #SRM_Absorption_Ratio_Standardised_Shift_monthly= SRM_Absorption_Ratio_Standardised_Shift.resample('M')
         #Graphs
 halflife=0
-SRM_AR_plot= SRM_absorptionratio.plot(figsize=(10,4))
+#SRM_AR_plot= SRM_absorptionratio.plot(figsize=(10,4))
 #SRM_Absorption_Ratio_and_Stock_Prices_Graph= srm.Absorption_Ratio_VS_MSCI_Graph(MSCI=Comparision_input, AR_returns=SRM_absorptionratio[0])
 #SRM_AR_vs_Market_plot= srm.plot_AR(AR=SRM_absorptionratio)
+SRM_AR_all= srm.plot_AR_ALL(US=US_sectors_returns, UK=UK_sectors_returns, JPN=JPN_sectors_returns)
 #-------------------------
 #----------------------------------------------------------------------------------------------------------------------------------
 
@@ -126,7 +128,7 @@ RUN Empirical Analysis"""
 #SRM_VaR_and_Realised_Returns = srm.MahalanobisDist_Table3(Portfolios=SRM_Efficient_Portfolios[1], beta=0.01)
 #SRM_Modified_Mean_Variance_Optimization= srm.MahalanobisDist_Table4(portfolio=Equilbrium_returns, weights=equilibrium_Weights)
 
-SRM_Mean_Var= srm.MahalanobisDist_Table4(portfolio=Equilbrium_returns, weights=equilibrium_Weights)
+SRM_Mean_Var= srm.MahalanobisDist_Table4(portfolio=S_P500_returns, full_trailing=returns)
 #SRM_shrink_cov=  srm.shrinking_cov(Market_Portfolio=Equilbrium_returns*equilibrium_Weights,Regress_test= returns.iloc[:,4:5] )
 #-------------------------
     

@@ -59,9 +59,9 @@ Asset_Classes_timeseries_dataframe_log_returns=srm.logreturns(Returns=Asset_Clas
 Asset_Classes_timeseries_dataframe_log_returns.save('Table2_Asset_Classes')
 
 #Mean-variance optimisation
-symbols = ['^GSPC','EFA','TIP','VNQ']                                                             #An example of the type of data that would be required for Figure 5 inputs 
-Start_Date,End_Date='09/30/2004','12/8/2014'                                     #Date Range for required returns. In the format of MM/DD/YY 
-Historical_Pricess = pdio.get_data_yahoo(symbols,start= Start_Date,end= End_Date)#Download Historical Prices using symbols as a list of yahoo tickers over the defined start date-end date
+symbols = ['^GSPC']                                                             #An example of the type of data that would be required for Figure 5 inputs 
+Start_Date='1/1/1980'                                    #Date Range for required returns. In the format of MM/DD/YY 
+Historical_Pricess = pdio.get_data_yahoo(symbols,start= Start_Date)#Download Historical Prices using symbols as a list of yahoo tickers over the defined start date-end date
 Historical_Pricess_closed=Historical_Pricess['Adj Close'].dropna()  
 Historical_Pricess_closed.save('S&P_500')    
 
