@@ -84,23 +84,23 @@ def MahalanobisDist_Turbulent_Returns(MD_returns, Returns):
     
    
 
-def HistoricalTurbulenceIndexGraph( Mah_Days,  width, figsize):
+def HistoricalTurbulenceIndexGraph( Mah_Days,  width, figsize, datesize):
     import matplotlib.pyplot as plt
     
     
-    Monthly_Mah_Returns= Mah_Days.resample('M')   
+    Monthly_Mah_Returns= Mah_Days.resample(datesize)   
     Monthly_Mah_Turbulent_Returns= Monthly_Mah_Returns[Monthly_Mah_Returns>Monthly_Mah_Returns.quantile(.75)[0]].dropna()    
     
     fig= plt.figure(1, figsize=figsize)
     plt.xticks(rotation=50)                                                     #rotate x axis labels 50 degrees
     plt.xlabel('Year')                                                          #label x axis Year
     plt.ylabel('Index')                                                         #label y axis Index
-    plt.suptitle('Historical Turbulence Index Calcualted from Monthly Returns',fontsize=12)   
+    plt.suptitle(['Historical Turbulence Index Calcualted from', datesize, 'Returns'],fontsize=12)   
     plt.bar(Monthly_Mah_Returns.index,Monthly_Mah_Returns.values, width,color='w', label='Quiet')#graph bar chart of Mahalanobis Distance
     plt.bar(Monthly_Mah_Turbulent_Returns.index,Monthly_Mah_Turbulent_Returns.values, width,color='k',alpha=0.8, label='Turbulent')
-    plt.legend()
+    plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)      
     plt.show()
-    fig.savefig('Historical_Turbulence_Index_Calcualted_from_ Monthly_Returns.png')
+   
     #---------------------------------------------------------------------------    
     return 
    #---------------------------------------------------------------------------
@@ -412,7 +412,6 @@ def Correlation_Surprise(Returns):
     #Stage 1: GENERATE TURBULENCE SCORE
     TS_daily= MahalanobisDist(Returns)                                               #calculate Turbulence Score from Mahalanobis Distance Function
     
-    
              #Step2: CALCULATE MAGNITUDE SURPRISE   
     
         #Stage1: CALCULATE COVARIANCE MATRIX
@@ -446,7 +445,10 @@ def Correlation_Surprise(Returns):
         
             #step3:CALCULATE CORRELATION SURPRISE
         #stage1: CALCULATE CORRELATION SURPRISE
-    Corre_Surprise_Daily= TS_daily.divide(Mag_Surprise_Daily)                                              # Calculate daily Correlation Surprise returns
+    Corre_Surprise_Daily= TS_daily.divide(Mag_Surprise_Daily)   
+
+    Norm_Magnitude_Surprise=  (Mag_Surprise_Daily - Mag_Surprise_Daily.mean()) / (Mag_Surprise_Daily.max() - Mag_Surprise_Daily.min())
+    Mag_Surprise_Daily = Norm_Magnitude_Surprise                                   # Calculate daily Correlation Surprise returns
     
     #Correlation_monthly_trail= Corre_Sur*Mag_Sur                                
     #resample_Correlation_monthly= Correlation_monthly_trail.resample('M',how=sum) 
@@ -457,7 +459,25 @@ def Correlation_Surprise(Returns):
 
    #---------------------------------------------------------------------------
 
+
+def Corr_plot( Corr_sur, Mag_sur,  width, figsize):
+    import matplotlib.pyplot as plt
     
+    
+    fig= plt.figure(1, figsize=figsize)
+    plt.xticks(rotation=50)                                                     #rotate x axis labels 50 degrees
+    plt.xlabel('Year')                                                          #label x axis Year
+    plt.ylabel('Index')                                                         #label y axis Index
+    plt.suptitle(['Correlation Surprise Returns'],fontsize=12)   
+    plt.bar(Corr_sur.index,Corr_sur.values, width,color='w', label='Correlation_Surprise')#graph bar chart of Mahalanobis Distance
+    plt.bar(Mag_sur.index,Mag_sur.values, width,color='k',alpha=0.8, label='Magnitude Surprise')
+    plt.legend()
+    plt.show()
+   
+    #---------------------------------------------------------------------------    
+    return 
+   #---------------------------------------------------------------------------
+  
 
 
 def Conditional_ave_magn_sur_on_day_of_the_reading(Exhibit5_USEquities, Exhibit5_Euro_Equities, Exhibit5_Currency):
@@ -603,7 +623,7 @@ def Correlation_Surprise_Table_Exhbit7():
 
 #Journal Article: Kritzman et al. - 2011 - Principal Components as a Measure of Systemic Risk
 #http://www.mas.gov.sg/~/media/resource/legislation_guidelines/insurance/notices/GICS_Methodology.pdf
-def Absorption_Ratio(Returns):
+def Absorption_Ratio(Returns, halflife):
     
     #problem with Absorption ratio is that it needs non-log return data. Once this is obtained it should take the exponential 250 day returns. After the log returns should be taken and then the 500day trailing window    
     
@@ -649,7 +669,7 @@ def Absorption_Ratio(Returns):
     plot_array= np.array(plotting_data)                                        #convert plotting_data into array
     dates= Returns[500:time_series_of_500days+500].index                  #gather dates index over 500 day window iterations
     Absorption_Ratio_daily=pd.DataFrame(plot_array,index=dates,columns=list('R'))#merge dates and Absorption ratio returns
-    Absorption_Ratio_daily= pd.ewma(Absorption_Ratio_daily, halflife=250)
+    Absorption_Ratio_daily= pd.ewma(Absorption_Ratio_daily, halflife=halflife)
     #Absorption_Ratio=Absorption_Ratio_daily.resample('M', how=None)#group daily data into monthly data
     
     return  Absorption_Ratio_daily #, Eigenvectors                                                  #print Absorption Ratio
@@ -712,17 +732,19 @@ def Absorption_Ratio_and_Drawdowns(delta_AR):    #how to measure all drawdowns
     return (delta_AR['R'][prevmaxi], delta_AR['R'][prevmini])
 
 
-def plot_AR(AR):
+def plot_AR(AR, figsize, datesize):
     
     import matplotlib.pyplot as plt
-    import numpy as np
     
-    plt.figure( figsize=(10,3))    
-    plt.suptitle('Absorption Ratio',fontsize=12) 
+    
+    plt.figure( figsize=(figsize))    
+    plt.suptitle(['Absorption Ratio Index from', datesize,' Daily Returns'],fontsize=12) 
     plt.xticks(rotation=50)
-    plt.xlabel('Year')#label x axis Year
+    plt.xlabel('Year')
+    plt.ylabel('Index')
     x1,x2,y1,y2 = plt.axis()
     plt.axis((x1,x2,0.5,1))
+    AR= AR.resample(datesize)
     x=AR.index
     y=AR.values
     plt.plot(x,y)
@@ -734,13 +756,13 @@ def plot_AR(AR):
     return 
 
 
-def plot_AR_ALL(US, UK, JPN):
+def plot_AR_ALL(US, UK, JPN, halflife):
         
     import matplotlib.pyplot as plt
     
-    US_input= Absorption_Ratio(Returns= US)
-    UK_input =Absorption_Ratio(Returns= UK)
-    JPN_input =Absorption_Ratio(Returns= JPN)  
+    US_input= Absorption_Ratio(Returns= US, halflife=halflife)
+    UK_input =Absorption_Ratio(Returns= UK, halflife=halflife)
+    JPN_input =Absorption_Ratio(Returns= JPN, halflife=halflife)  
     
     plt.figure(figsize=(10,3))
     x1,x2,y1,y2 = plt.axis()
