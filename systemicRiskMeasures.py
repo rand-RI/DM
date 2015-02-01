@@ -447,8 +447,7 @@ def Correlation_Surprise(Returns):
         #stage1: CALCULATE CORRELATION SURPRISE
     Corre_Surprise_Daily= TS_daily.divide(Mag_Surprise_Daily)   
 
-    Norm_Magnitude_Surprise=  (Mag_Surprise_Daily - Mag_Surprise_Daily.mean()) / (Mag_Surprise_Daily.max() - Mag_Surprise_Daily.min())
-    Mag_Surprise_Daily = Norm_Magnitude_Surprise                                   # Calculate daily Correlation Surprise returns
+                             # Calculate daily Correlation Surprise returns
     
     #Correlation_monthly_trail= Corre_Sur*Mag_Sur                                
     #resample_Correlation_monthly= Correlation_monthly_trail.resample('M',how=sum) 
@@ -460,23 +459,40 @@ def Correlation_Surprise(Returns):
    #---------------------------------------------------------------------------
 
 
-def Corr_plot( Corr_sur, Mag_sur,  width, figsize):
+def Corr_plot( Corr_sur, Mag_sur,  width, figsize, datesize):
     import matplotlib.pyplot as plt
     
+    Corr_sur= Corr_sur.resample(datesize)
+    Mag_sur= Mag_sur.resample(datesize)
     
-    fig= plt.figure(1, figsize=figsize)
-    plt.xticks(rotation=50)                                                     #rotate x axis labels 50 degrees
+    fig= plt.figure (figsize=figsize)
+    fig.add_subplot(211)
     plt.xlabel('Year')                                                          #label x axis Year
     plt.ylabel('Index')                                                         #label y axis Index
-    plt.suptitle(['Correlation Surprise Returns'],fontsize=12)   
-    plt.bar(Corr_sur.index,Corr_sur.values, width,color='w', label='Correlation_Surprise')#graph bar chart of Mahalanobis Distance
-    plt.bar(Mag_sur.index,Mag_sur.values, width,color='k',alpha=0.8, label='Magnitude Surprise')
-    plt.legend()
+    plt.suptitle(['Correlation Surprise and Magnitude Surprise', datesize, 'Returns'],fontsize=12)   
+    plt.bar(Corr_sur.index,Corr_sur.values,color='w', width=width ,label= 'Correlation Surprise')
+    plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.) 
+    
+    fig.add_subplot(212)
+    plt.xlabel('Year')                                                          #label x axis Year
+    plt.ylabel('Index')                                                         #label y axis Index
+    plt.bar(Mag_sur.index,Mag_sur.values,color='b', width=width ,label= 'Magnitude Surprise')
+    plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.) 
+    
+
     plt.show()
-   
+    
+    
+    
     #---------------------------------------------------------------------------    
     return 
    #---------------------------------------------------------------------------
+  
+  
+  
+  
+  
+  
   
 
 
@@ -742,12 +758,16 @@ def plot_AR(AR, figsize, datesize):
     plt.xticks(rotation=50)
     plt.xlabel('Year')
     plt.ylabel('Index')
-    x1,x2,y1,y2 = plt.axis()
-    plt.axis((x1,x2,0.5,1))
+    
+    y1, y2 = 0.5, 1
+    plt.ylim([y1, y2])    
+    
+    #x1,x2,y1,y2 = plt.axis()
+    #plt.axis((x1,x2,0.5,1))
     AR= AR.resample(datesize)
     x=AR.index
     y=AR.values
-    plt.plot(x,y)
+    plt.plot(x,y, linewidth=2.5, color='k')
     #cannot seem to find out how to colour this?
     
 
@@ -765,7 +785,7 @@ def plot_AR_ALL(US, UK, JPN, halflife):
     JPN_input =Absorption_Ratio(Returns= JPN, halflife=halflife)  
     
     plt.figure(figsize=(10,3))
-    y1,y2 = plt.yaxis()
+    x1,x2,y1,y2 = plt.axis()
     plt.axis((x1,x2,0.5,1))
     plt.xlabel('Year')
     plt.ylabel('Absorption Ratio')
