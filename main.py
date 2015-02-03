@@ -81,7 +81,7 @@ MSCIUS_PRICES= pd.load('MSCIUSA')
 """STAGE 3: 
 IMPORT SYSTEMIC RISK MEASURES AND RUN SIGNALS"""
 #-------------------------
-Input= US_sectors_returns
+Input= JPN_sectors_returns
 
 """Mahalanobis Distance"""
         #Input
@@ -92,7 +92,7 @@ SRM_mahalanobis_turbulent_nonturbulent_days= srm.MahalanobisDist_Turbulent_Retur
                     #drop inputs
 Input=Input.drop('MD',1)
 MD_input= MD_input.drop('MD',1)
-US_sectors_returns=US_sectors_returns.drop('MD',1)
+JPN_sectors_returns=JPN_sectors_returns.drop('MD',1)
 
        #Graph
 SRM_HistoricalTurbulenceIndexGraph= srm.HistoricalTurbulenceIndexGraph( Mah_Days=SRM_mahalanobis,  width=30, figsize=(10,2.5), datesize='M')

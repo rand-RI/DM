@@ -768,6 +768,7 @@ def plot_AR(AR, figsize, datesize):
     x=AR.index
     y=AR.values
     plt.plot(x,y, linewidth=2.5, color='k')
+    plt.grid()
     #cannot seem to find out how to colour this?
     
 
