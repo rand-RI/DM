@@ -48,8 +48,13 @@ shrinkage= np.reshape(np.max(np.reshape(np.min(k/t),(1,1))),(1,1))
 
 sigma= shrinkage*prior + (1-shrinkage)*sample
 
-print shrinkage
+print sigma
 
+
+
+#or 
+import sklearn.covariance 
+sklearn.covariance.ledoit_wolf(FamaFrench49)
 
 
 

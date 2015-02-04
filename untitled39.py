@@ -1,38 +1,35 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Feb 02 17:42:18 2015
+import numpy as np
+import systemicRiskMeasures as srm
+import pandas as pd   
 
-@author: Daniel Murray
-"""
-
-
-
-import pandas as pd
-import systemicRiskMeasures as srm   
-
-#-------------------------------------------------------------------------------
 US_sectors= pd.load('USsectors')
 US_sectors_returns= srm.logreturns(Returns=US_sectors)
+      
+
+#(1) absolute weights (MVO_abs_wtgs) 
+
+x_t= [0.2,0.3,0.4]
+N= int(np.shape(x_t)[0])
+one_n= np.ones((1,N))
+MVO_abs_wtgs= x_t/(np.absolute(np.transpose(one_n)*x_t))
+
+
+## calcalcuate x_T
+y=0.2
+sigma= US_sectors_returns.cov()
+sigma_inv=np.linalg.inv(sigma)
+u=np.reshape(np.array(US_sectors_returns.mean()), (1,US_sectors_returns.shape[1]))
+
+x_t=(1/y)*sigma_inv*u
 
 
 
 
+#(2) relative weights (MVO_rel_wtgs)u= returns.mean()
+u_t=np.reshape(np.array(US_sectors_returns.mean()), (US_sectors_returns.shape[1],1))
+sigma= US_sectors_returns.cov()
+one_n= np.ones((1,US_sectors_returns.shape[1]))
+MVO_rel_wtgs= (np.linalg.inv(sigma)*u_t)/(one_n*np.linalg.inv(sigma)*u_t)
 
-#http://scipystats.blogspot.com.au/
 
-import statsmodels.api as sm
-import pandas as pd
-import patsy
 
-df=US_sectors_returns
-
-f = 'y~duration+poutcome+month+contact+age+job';
-y,x = patsy.dmatrices(f, df,return_type='dataframe')
-
-"""
-https://qizeresearch.wordpress.com/2013/12/03/quick-start-with-python-data-mining-using-pandas-patsy-and-statsmodels/
-"""
-
-"""
-http://statsmodels.sourceforge.net/devel/examples/generated/example_discrete.html
-"""
