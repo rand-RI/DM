@@ -93,7 +93,6 @@ SRM_mahalanobis_turbulent_nonturbulent_days= srm.MahalanobisDist_Turbulent_Retur
 Input=Input.drop('MD',1)
 MD_input= MD_input.drop('MD',1)
 JPN_sectors_returns=JPN_sectors_returns.drop('MD',1)
-
        #Graph
 SRM_HistoricalTurbulenceIndexGraph= srm.HistoricalTurbulenceIndexGraph( Mah_Days=SRM_mahalanobis,  width=30, figsize=(10,2.5), datesize='M')
 #-------------------------
@@ -131,7 +130,7 @@ RUN Empirical Analysis"""         #THE HASTAGGED OUT LINES BELOW ARE DUE TO SLOW
 #SRM_Persistence_of_Turbulence= srm.MahalanobisDist_Table1(Market_Returns=Table_1_returns)
 SRM_Efficient_Portfolios=srm.MahalanobisDist_Table2(Asset_Class= Table_2_Asset_Classes, Weights=portfolio_weights) #need to add [0] to get Table
 SRM_VaR_and_Realised_Returns = srm.MahalanobisDist_Table3(Portfolios=SRM_Efficient_Portfolios[1], beta=0.01)
-SRM_Mean_Var= srm.MahalanobisDist_Table4(portfolio=S_P500_returns, full_trailing=returns)
+SRM_Mean_Var= srm.Mod_Mean_Var(portfolio=S_P500_returns, full_trailing=returns)
 #-------------------------
     
     

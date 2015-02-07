@@ -24,7 +24,7 @@ ma.add_list('symbols', ['AAPL', 'GOOG', 'MSFT', 'FB'])
 ma.add_constant('source', 'google')
 ma.add_constant('final date', dt.date(2014, 3, 1))
 
-port = mean_variance_portfolio('am_tech_stocks', ma)  # instantiates the portfolio class and retrieves all the time series data needed
+port = mean_variance_portfolio('am_tech_stocks', US_sectors)  # instantiates the portfolio class and retrieves all the time series data needed
 port.get_weights()
 #----------------
 

@@ -344,7 +344,7 @@ def shrinking_cov(Market_Portfolio):
     return sigma
    #---------------------------------------------------------------------------
 
-def MahalanobisDist_Table4(portfolio, full_trailing): 
+def Mod_Mean_Var(portfolio, full_trailing): 
     
     
    """Equilibrium Returns is constructed as a portfolio 
@@ -355,10 +355,7 @@ def MahalanobisDist_Table4(portfolio, full_trailing):
    market_portfolio= portfolio    #equilibrium returns on the basis of full training sample
   # market_portfolio_based_full= 
    
-   
-   
-   
-   market_portfolio_mean= market_portfolio.mean().mean()
+   market_portfolio_mean= market_portfolio.mean()
    #---------------------------------------------------------------------------
    
    #Step2: Estimate Conditional Expected returns
@@ -388,10 +385,82 @@ def MahalanobisDist_Table4(portfolio, full_trailing):
 
    #step4: Estimate the conditioned covariances
    full_sample_covariance= full_training_sample.cov() 
-   est_uncon_cov= Turbulent_ratio*shrinking_cov(Market_Portfolio=Turbulent_days)+ Non_Turbulent_ratio*full_sample_covariance
+   est_con_cov= Turbulent_ratio*shrinking_cov(Market_Portfolio=Turbulent_days)+ Non_Turbulent_ratio*full_sample_covariance
    #---------------------------------------------------------------------------
-      
-   return     u_c_t, u_c_f, est_uncon_cov
+
+    #Step5: Group Data
+   Unconditional_portfolio= [market_portfolio_mean, est_uncon_cov]
+   Conditioned_portfolio_t= [u_c_t, est_con_cov]
+   Conditioned_portfolio_f= [u_c_f, est_con_cov]
+
+   #step6: Implement Mean-Variance
+   import numpy as np
+   import pandas as pd
+    
+   """Step1:
+   Import Data as DataFrame"""
+   #-------------
+   FamaFrench49= pd.load('FenFrench49')                # Import DataFrame
+   data=FamaFrench49
+   rets=data
+    
+   noa=len(data.columns)                                #Generate Len of Columns
+   #log returns
+       #rets= np.log(data/data.shift(1))
+   #-------------
+   
+   """Step2:
+   Portfolio Optim"""
+   import scipy.optimize as sco
+   import sklearn.covariance
+   #Step1:
+   #----------------
+   #Function returns major portfolio statistics for an input weights vector/array
+   def statistics(weights):               
+       """ Returns portfolio statistics.
+       Parameters
+       ==========
+       weights : array-like
+       weights for different securities in portfolio
+       Returns
+       =======
+       pret : float
+       expected portfolio return
+       pvol : float
+       expected portfolio volatility
+       pret / pvol : float
+       Sharpe ratio for rf=0
+       """
+       weights = np.array(weights)
+       mean=rets.mean()
+       covariance=rets.cov()
+       pret = np.sum(mean * weights) * 252
+       pvol = np.sqrt(np.dot(weights.T, np.dot(covariance * 252, weights)))
+       return np.array([pret, pvol, pret / pvol])
+       
+   #Minimise Variance
+   def min_func_variance(weights):
+       return statistics(weights)[1] ** 2
+   #----------------
+   
+   #Step2: Add Constraints
+   #-------------------
+   cons = ({'type': 'eq', 'fun': lambda x: np.sum(x) - 1}) #list constraint that all weights add to 1    
+   bnds = tuple((0, 1) for x in range(noa)) #bound weights so that values are only within 0 and 1
+   Equal_weights= noa * [1. / noa,]  #Input an equal distribution of weights
+   #-------------------
+   
+   #Step3: Generate Optimised Returns
+   #-------------------
+   optv = sco.minimize(min_func_variance, Equal_weights, method='SLSQP', bounds=bnds,  constraints=cons)
+   print 'Optimised Vol Weights'
+   print optv['x'].round(3)
+   print #
+   print 'Expected Returns:' ,statistics(optv['x']).round(3)[0]
+   print 'Volatility:' ,statistics(optv['x']).round(3)[1]
+   print 'Sharpe:' ,statistics(optv['x']).round(3)[2]
+   
+   return   optv['x'].round(3)  
     
     
    #---------------------------------------------------------------------------
@@ -399,7 +468,10 @@ def MahalanobisDist_Table4(portfolio, full_trailing):
    #---------------------------------------------------------------------------
    #---------------------------------------------------------------------------
     
-    
+ 
+
+
+   
 #Journal Article: Kinlaw and Turkington - 2012 - Correlation Surprise
 def Correlation_Surprise(Returns):
     

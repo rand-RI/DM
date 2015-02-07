@@ -24,46 +24,51 @@ class mean_variance_portfolio(object):
     '''
     Class to implement the mean variance portfolio theory of Markowitz
     '''
-
+    
     def __init__(self, name, mar_env):
-        self.name = name
-        try:
-            self.symbols = mar_env.get_list("symbols")
-            self.start_date = mar_env.pricing_date
-        except:
-            raise ValueError("Error parsing market environment.")
-
-        self.number_of_assets = len(self.symbols)
-        try:
-            self.final_date = mar_env.get_constant("final date")
-        except:
-            self.final_date = dt.date.today()
-        try:
-            self.source = mar_env.get_constant("source")
-        except:
-            self.source = 'google'
-        try:
-            self.weights = mar_env.get_constant("weights")
-        except:
-            self.weights = np.ones(self.number_of_assets, 'float')
-            self.weights /= self.number_of_assets
-        try:
-            weights_sum = sum(self.weights)
-        except:
-            msg = "Weights must be an iterable of numbers."
-            raise TypeError(msg)
-
-        if round(weights_sum, 6) != 1:
-            raise ValueError("Sum of weights must be one.")
-
-        if len(self.weights) != self.number_of_assets:
-            msg = "Expected %s weights, got %s"
-            raise ValueError(msg % (self.number_of_assets,
-                                    len(self.weights)))
-
-        self.load_data()
-        self.make_raw_stats()
-        self.apply_weights()
+        
+        if str(type(mar_env))== "<class 'pandas.core.frame.DataFrame'>" :
+            self= mar_env
+        else:              
+                        
+            self.name = name
+            try:
+                self.symbols = mar_env.get_list("symbols")
+                self.start_date = mar_env.pricing_date
+            except:
+                raise ValueError("Error parsing market environment.")
+    
+            self.number_of_assets = len(self.symbols)
+            try:
+                self.final_date = mar_env.get_constant("final date")
+            except:
+                self.final_date = dt.date.today()
+            try:
+                self.source = mar_env.get_constant("source")
+            except:
+                self.source = 'google'
+            try:
+                self.weights = mar_env.get_constant("weights")
+            except:
+                self.weights = np.ones(self.number_of_assets, 'float')
+                self.weights /= self.number_of_assets
+            try:
+                weights_sum = sum(self.weights)
+            except:
+                msg = "Weights must be an iterable of numbers."
+                raise TypeError(msg)
+    
+            if round(weights_sum, 6) != 1:
+                raise ValueError("Sum of weights must be one.")
+    
+            if len(self.weights) != self.number_of_assets:
+                msg = "Expected %s weights, got %s"
+                raise ValueError(msg % (self.number_of_assets,
+                                        len(self.weights)))
+    
+            self.load_data()
+            self.make_raw_stats()
+            self.apply_weights()
 
     def __str__(self):
         string = "Portfolio %s \n" % self.name
@@ -188,6 +193,7 @@ class mean_variance_portfolio(object):
         '''
 
         d = dict()
+        self.symbols=list(self.columns)
         for i in range(len(self.symbols)):
             d[self.symbols[i]] = self.weights[i]
         return d
