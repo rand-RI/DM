@@ -266,7 +266,7 @@ def regression(Primarily_return, Secondary_returns):
 def shrinkage_ret_est(sample):
     import numpy as np
         
-    u= sample.mean().mean()
+    u= np.array(sample.mean())
     returns=sample
         
     #Calculate u_m (shrinkage target)        
@@ -346,7 +346,7 @@ def shrinking_cov(Market_Portfolio):
 
 def Mod_Mean_Var(portfolio, full_trailing): 
     
-    
+   import numpy as np 
    """Equilibrium Returns is constructed as a portfolio 
    of 60% US equities, 30% T bonds and 10% US Corporate Bonds"""
    full_training_sample=full_trailing
@@ -355,7 +355,9 @@ def Mod_Mean_Var(portfolio, full_trailing):
    market_portfolio= portfolio    #equilibrium returns on the basis of full training sample
   # market_portfolio_based_full= 
    
-   market_portfolio_mean= market_portfolio.mean()
+   market_portfolio_mean= np.array(market_portfolio.mean())
+   market_portfolio_mean= market_portfolio_mean*np.reshape(np.ones(len(full_training_sample.columns)), (1,len(full_training_sample.columns)))
+
    #---------------------------------------------------------------------------
    
    #Step2: Estimate Conditional Expected returns
@@ -375,8 +377,8 @@ def Mod_Mean_Var(portfolio, full_trailing):
        #Blend difference between compressed sub and full sample with equilibrium returns
    Turbulent_ratio, Non_Turbulent_ratio  = (float(len(Turbulent_days))/(len(full_training_sample))),(1-(float(len(Turbulent_days))/(len(full_training_sample))))
    
-   u_c_t= Turbulent_ratio*u_t + Non_Turbulent_ratio*market_portfolio_mean
-   u_c_f= 0.5*u_f + 0.5*market_portfolio_mean
+   u_c_t= (Turbulent_ratio*u_t + Non_Turbulent_ratio*market_portfolio_mean)/2
+   u_c_f= (0.5*u_f + 0.5*market_portfolio_mean)/2
    #---------------------------------------------------------------------------
    
    #step3: Estimate unconditional covariances by shrinking sample covariance
@@ -392,7 +394,10 @@ def Mod_Mean_Var(portfolio, full_trailing):
    Unconditional_portfolio= [market_portfolio_mean, est_uncon_cov]
    Conditioned_portfolio_t= [u_c_t, est_con_cov]
    Conditioned_portfolio_f= [u_c_f, est_con_cov]
-
+   
+   portfolio_list=[Unconditional_portfolio,Conditioned_portfolio_t,Conditioned_portfolio_f]
+   sample_list= [market_portfolio, full_training_sample,Turbulent_days] 
+   
    #step6: Implement Mean-Variance
    import numpy as np
    import pandas as pd
@@ -400,67 +405,71 @@ def Mod_Mean_Var(portfolio, full_trailing):
    """Step1:
    Import Data as DataFrame"""
    #-------------
-   FamaFrench49= pd.load('FenFrench49')                # Import DataFrame
-   data=FamaFrench49
-   rets=data
-    
-   noa=len(data.columns)                                #Generate Len of Columns
-   #log returns
-       #rets= np.log(data/data.shift(1))
-   #-------------
-   
-   """Step2:
-   Portfolio Optim"""
-   import scipy.optimize as sco
-   import sklearn.covariance
-   #Step1:
-   #----------------
-   #Function returns major portfolio statistics for an input weights vector/array
-   def statistics(weights):               
-       """ Returns portfolio statistics.
-       Parameters
-       ==========
-       weights : array-like
-       weights for different securities in portfolio
-       Returns
-       =======
-       pret : float
-       expected portfolio return
-       pvol : float
-       expected portfolio volatility
-       pret / pvol : float
-       Sharpe ratio for rf=0
-       """
-       weights = np.array(weights)
-       mean=rets.mean()
-       covariance=rets.cov()
-       pret = np.sum(mean * weights) * 252
-       pvol = np.sqrt(np.dot(weights.T, np.dot(covariance * 252, weights)))
-       return np.array([pret, pvol, pret / pvol])
+   Mean_var=[]
+   Optimal_weights=[]
+   ER_VOL_SHAR=[]
+   for i in range(1,3):
+       rets=portfolio_list[i]
+       noa=len(sample_list[i].columns)                                #Generate Len of Columns
+       #log returns
+           #rets= np.log(data/data.shift(1))
+       #-------------
        
-   #Minimise Variance
-   def min_func_variance(weights):
-       return statistics(weights)[1] ** 2
-   #----------------
+       """Step2:
+       Portfolio Optim"""
+       import scipy.optimize as sco
+       import sklearn.covariance
+       #Step1:
+       #----------------
+       #Function returns major portfolio statistics for an input weights vector/array
+       def statistics(weights):               
+           """ Returns portfolio statistics.
+           Parameters
+           ==========
+           weights : array-like
+           weights for different securities in portfolio
+           Returns
+           =======
+           pret : float
+           expected portfolio return
+           pvol : float
+           expected portfolio volatility
+           pret / pvol : float
+           Sharpe ratio for rf=0
+           """
+           weights = np.array(weights)
+           mean=rets[0]
+           covariance=rets[1]
+           pret = np.sum(mean * weights) * 252
+           pvol = np.sqrt(np.dot(weights.T, np.dot(covariance * 252, weights)))
+           return np.array([pret, pvol, pret / pvol])
+           
+       #Minimise Variance
+       def min_func_variance(weights):
+           return statistics(weights)[1] ** 2
+       #----------------
+       
+       #Step2: Add Constraints
+       #-------------------
+       cons = ({'type': 'eq', 'fun': lambda x: np.sum(x) - 1}) #list constraint that all weights add to 1    
+       bnds = tuple((0, 1) for x in range(noa)) #bound weights so that values are only within 0 and 1
+       Equal_weights= noa * [1. / noa,]  #Input an equal distribution of weights
+       #-------------------
+       
+       #Step3: Generate Optimised Returns
+       #-------------------
+       optv = sco.minimize(min_func_variance, Equal_weights, method='SLSQP', bounds=bnds,  constraints=cons)
+       Mean_var.append(optv)     
+       Optimal_weights.append(optv['x'].round(3))
+       ER_VOL_SHAR.append(statistics(optv['x']).round(3))
+       #print 'Optimised Vol Weights'
+       #print optv['x'].round(3)
+       #print #
+       #print 'Expected Returns:' ,statistics(optv['x']).round(3)[0]
+       #print 'Volatility:' ,statistics(optv['x']).round(3)[1]
+       #print 'Sharpe:' ,statistics(optv['x']).round(3)[2]
    
-   #Step2: Add Constraints
-   #-------------------
-   cons = ({'type': 'eq', 'fun': lambda x: np.sum(x) - 1}) #list constraint that all weights add to 1    
-   bnds = tuple((0, 1) for x in range(noa)) #bound weights so that values are only within 0 and 1
-   Equal_weights= noa * [1. / noa,]  #Input an equal distribution of weights
-   #-------------------
-   
-   #Step3: Generate Optimised Returns
-   #-------------------
-   optv = sco.minimize(min_func_variance, Equal_weights, method='SLSQP', bounds=bnds,  constraints=cons)
-   print 'Optimised Vol Weights'
-   print optv['x'].round(3)
-   print #
-   print 'Expected Returns:' ,statistics(optv['x']).round(3)[0]
-   print 'Volatility:' ,statistics(optv['x']).round(3)[1]
-   print 'Sharpe:' ,statistics(optv['x']).round(3)[2]
-   
-   return   optv['x'].round(3)  
+   return   "Optimal_weights: Conditioned_portfolio_t,Conditioned_portfolio_f " ,Optimal_weights, "Expected Return, Volatility and Sharpe Ratio",ER_VOL_SHAR 
     
     
    #---------------------------------------------------------------------------
@@ -517,7 +526,7 @@ def Correlation_Surprise(Returns):
         
             #step3:CALCULATE CORRELATION SURPRISE
         #stage1: CALCULATE CORRELATION SURPRISE
-    Corre_Surprise_Daily= TS_daily.divide(Mag_Surprise_Daily)   
+    Corre_Surprise_Daily= TS_daily/(Mag_Surprise_Daily)   
 
                              # Calculate daily Correlation Surprise returns
     
