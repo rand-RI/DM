@@ -1,9 +1,11 @@
 """ Probit Model
 http://statsmodels.sourceforge.net/devel/examples/generated/example_discrete.html"""
 
+# how to fit model http://statsmodels.sourceforge.net/devel/gettingstarted.html
 
-import numpy as np
+import pandas as pd
 import statsmodels.api as sm
+from patsy import dmatrices
 
 #Load data from Spector and Mazzeo (1980). Examples follow Greene's Econometric Analysis Ch. 21 (5th Edition).
 spector_data = sm.datasets.spector.load()
