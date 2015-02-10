@@ -130,7 +130,8 @@ RUN Empirical Analysis"""         #THE HASTAGGED OUT LINES BELOW ARE DUE TO SLOW
 #SRM_Persistence_of_Turbulence= srm.MahalanobisDist_Table1(Market_Returns=Table_1_returns)
 SRM_Efficient_Portfolios=srm.MahalanobisDist_Table2(Asset_Class= Table_2_Asset_Classes, Weights=portfolio_weights) #need to add [0] to get Table
 SRM_VaR_and_Realised_Returns = srm.MahalanobisDist_Table3(Portfolios=SRM_Efficient_Portfolios[1], beta=0.01)
-SRM_Mean_Var= srm.Mod_Mean_Var(portfolio=S_P500_returns, full_trailing=returns)
+SRM_Mean_Var= srm.Mod_Mean_Var(portfolio=S_P500_returns, full_trailing=returns)   
+#Mean_Var only generates the optimal values for the conditional portfolio ....just need to find a market portfolio of N assets to generate unconditoned results
 #-------------------------
     
     
