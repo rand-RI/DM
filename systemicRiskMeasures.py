@@ -344,6 +344,80 @@ def shrinking_cov(Market_Portfolio):
     return sigma
    #---------------------------------------------------------------------------
 
+def Mean_Variance(portfolio_means, portfolio_covariance, num_columns):   
+   #step6: Implement Mean-Variance
+   import numpy as np
+   import pandas as pd
+    
+   """Step1:
+   Import Data as DataFrame"""
+   #-------------
+   rets=[portfolio_means,portfolio_covariance]
+   noa=num_columns                                #Generate Len of Columns
+       #log returns
+           #rets= np.log(data/data.shift(1))
+       #-------------
+       
+   """Step2:
+   Portfolio Optim"""
+   import scipy.optimize as sco
+   import sklearn.covariance
+   #Step1:
+   #----------------
+   #Function returns major portfolio statistics for an input weights vector/array
+   def statistics(weights):               
+        """ Returns portfolio statistics.
+        Parameters
+        ==========
+        weights : array-like
+        weights for different securities in portfolio
+        Returns
+        =======
+        pret : float
+        expected portfolio return
+        pvol : float
+        expected portfolio volatility
+        pret / pvol : float
+        Sharpe ratio for rf=0
+        """
+        weights = np.array(weights)
+        mean=rets[0]
+        covariance=rets[1]
+        pret = np.sum(mean * weights) * 252
+        pvol = np.sqrt(np.dot(weights.T, np.dot(covariance * 252, weights)))
+        return np.array([pret, pvol, pret / pvol])
+           
+     #Minimise Variance
+   def min_func_variance(weights):
+       return statistics(weights)[1] ** 2
+     #----------------
+       
+     #Step2: Add Constraints
+     #-------------------
+   cons = ({'type': 'eq', 'fun': lambda x: np.sum(x) - 1}) #list constraint that all weights add to 1    
+   bnds = tuple((0, 1) for x in range(noa)) #bound weights so that values are only within 0 and 1
+   Equal_weights= noa * [1. / noa,]  #Input an equal distribution of weights
+    #-------------------
+       
+   #Step3: Generate Optimised Returns
+   #-------------------
+   optv = sco.minimize(min_func_variance, Equal_weights, method='SLSQP', bounds=bnds,  constraints=cons)
+   Mean_var= optv     
+   Optimal_weights= optv['x'].round(3)
+   ER_VOL_SHAR =statistics(optv['x']).round(3)
+    #print 'Optimised Vol Weights'
+     #print optv['x'].round(3)
+     #print #
+     #print 'Expected Returns:' ,statistics(optv['x']).round(3)[0]
+     #print 'Volatility:' ,statistics(optv['x']).round(3)[1]
+     #print 'Sharpe:' ,statistics(optv['x']).round(3)[2]
+   
+   
+   #first half
+       
+   return   "Optimal_weights" ,Optimal_weights, "Expected Return, Volatility and Sharpe Ratio",ER_VOL_SHAR 
+    
+
 def Mod_Mean_Var(portfolio, full_trailing): 
     
    import numpy as np 
@@ -355,8 +429,8 @@ def Mod_Mean_Var(portfolio, full_trailing):
    market_portfolio= portfolio    #equilibrium returns on the basis of full training sample
   # market_portfolio_based_full= 
    
-   market_portfolio_mean= np.array(market_portfolio.mean())
-   market_portfolio_mean= market_portfolio_mean*np.reshape(np.ones(len(full_training_sample.columns)), (1,len(full_training_sample.columns)))
+   market_portfolio_means= np.array(market_portfolio.mean())
+   market_portfolio_mean= (market_portfolio_means.mean())*np.reshape(np.ones(len(full_training_sample.columns)), (1,len(full_training_sample.columns)))
 
    #---------------------------------------------------------------------------
    
@@ -364,7 +438,7 @@ def Mod_Mean_Var(portfolio, full_trailing):
    full_training_sample=full_trailing
        #Compute Average returns of the Turbulent subsample
               #Generate Turbulent Subsample
-   MahalanobisDist_returns= MahalanobisDist(Returns= full_training_sample)
+   MahalanobisDist_returns= MahalanobisDist(Returns= full_training_sample).resample('M')
    Turbulent_days= MahalanobisDist_Turbulent_Returns(MD_returns= MahalanobisDist_returns, Returns=full_training_sample)[2]
    full_training_sample= full_training_sample.drop('MD',1)
                #Estimate return after shrinkage
@@ -382,7 +456,10 @@ def Mod_Mean_Var(portfolio, full_trailing):
    #---------------------------------------------------------------------------
    
    #step3: Estimate unconditional covariances by shrinking sample covariance
-   est_uncon_cov= shrinking_cov(Market_Portfolio=full_training_sample)   
+   import pandas as pd
+   est_uncon_cov= shrinking_cov(Market_Portfolio=full_training_sample)
+   est_uncon_cov= pd.DataFrame(est_uncon_cov,index=full_training_sample.cov().index)
+   est_uncon_cov.columns= full_training_sample.cov().index
    #---------------------------------------------------------------------------
 
    #step4: Estimate the conditioned covariances
@@ -391,96 +468,53 @@ def Mod_Mean_Var(portfolio, full_trailing):
    #---------------------------------------------------------------------------
 
     #Step5: Group Data
-   Unconditional_portfolio= [market_portfolio_mean, est_uncon_cov]
+   Unconditional_portfolio= [market_portfolio_means, est_uncon_cov]
    Conditioned_portfolio_t= [u_c_t, est_con_cov]
    Conditioned_portfolio_f= [u_c_f, est_con_cov]
    
    portfolio_list=[Unconditional_portfolio,Conditioned_portfolio_t,Conditioned_portfolio_f]
    sample_list= [market_portfolio, full_training_sample,Turbulent_days] 
    
-   #step6: Implement Mean-Variance
-   import numpy as np
-   import pandas as pd
-    
-   """Step1:
-   Import Data as DataFrame"""
-   #-------------
-   Mean_var=[]
-   Optimal_weights=[]
-   ER_VOL_SHAR=[]
-   for i in range(1,3):
-       rets=portfolio_list[i]
-       noa=len(sample_list[i].columns)                                #Generate Len of Columns
-       #log returns
-           #rets= np.log(data/data.shift(1))
-       #-------------
-       
-       """Step2:
-       Portfolio Optim"""
-       import scipy.optimize as sco
-       import sklearn.covariance
-       #Step1:
-       #----------------
-       #Function returns major portfolio statistics for an input weights vector/array
-       def statistics(weights):               
-           """ Returns portfolio statistics.
-           Parameters
-           ==========
-           weights : array-like
-           weights for different securities in portfolio
-           Returns
-           =======
-           pret : float
-           expected portfolio return
-           pvol : float
-           expected portfolio volatility
-           pret / pvol : float
-           Sharpe ratio for rf=0
-           """
-           weights = np.array(weights)
-           mean=rets[0]
-           covariance=rets[1]
-           pret = np.sum(mean * weights) * 252
-           pvol = np.sqrt(np.dot(weights.T, np.dot(covariance * 252, weights)))
-           return np.array([pret, pvol, pret / pvol])
-           
-       #Minimise Variance
-       def min_func_variance(weights):
-           return statistics(weights)[1] ** 2
-       #----------------
-       
-       #Step2: Add Constraints
-       #-------------------
-       cons = ({'type': 'eq', 'fun': lambda x: np.sum(x) - 1}) #list constraint that all weights add to 1    
-       bnds = tuple((0, 1) for x in range(noa)) #bound weights so that values are only within 0 and 1
-       Equal_weights= noa * [1. / noa,]  #Input an equal distribution of weights
-       #-------------------
-       
-       #Step3: Generate Optimised Returns
-       #-------------------
-       optv = sco.minimize(min_func_variance, Equal_weights, method='SLSQP', bounds=bnds,  constraints=cons)
-       Mean_var.append(optv)     
-       Optimal_weights.append(optv['x'].round(3))
-       ER_VOL_SHAR.append(statistics(optv['x']).round(3))
-       #print 'Optimised Vol Weights'
-       #print optv['x'].round(3)
-       #print #
-       #print 'Expected Returns:' ,statistics(optv['x']).round(3)[0]
-       #print 'Volatility:' ,statistics(optv['x']).round(3)[1]
-       #print 'Sharpe:' ,statistics(optv['x']).round(3)[2]
-   
-   return   "Optimal_weights: Conditioned_portfolio_t,Conditioned_portfolio_f " ,Optimal_weights, "Expected Return, Volatility and Sharpe Ratio",ER_VOL_SHAR 
-    
-    
-   #---------------------------------------------------------------------------
-   #---------------------------------------------------------------------------
-   #---------------------------------------------------------------------------
-   #---------------------------------------------------------------------------
-    
- 
+   Unconditional_portfolio_Mod_Mean_Var= Mean_Variance(portfolio_means=Unconditional_portfolio[0], portfolio_covariance=Unconditional_portfolio[1], num_columns=len(sample_list[0].columns))
+   Conditioned_portfolio_t_Mod_Mean_Var= Mean_Variance(portfolio_means=Conditioned_portfolio_t[0], portfolio_covariance=Conditioned_portfolio_t[1], num_columns=len(sample_list[1].columns))
+   Conditioned_portfolio_f_Mod_Mean_Var= Mean_Variance(portfolio_means=Conditioned_portfolio_f[0], portfolio_covariance=Conditioned_portfolio_f[1], num_columns=len(sample_list[2].columns))
 
+   return 
+   #---------------------------------------------------------------------------
+    #Proble is that unconditional portfolio has weights of anything but he est_covariance will always be differnt due to using other sample    
+    
+    
+    
+    
+    #Need to create expanding window:
+    #This means that optimal weights must be calculated for every window
 
-   
+def Mod_Mean_Var_Exp_Wind(sample, market_portfolio):
+    
+    #Define portfolio covered over window    
+    unweighted_intial_portfolio= sample    
+    
+    #set intial port    
+    j=10    #window size
+    noa= len(sample.columns)  #number of assets
+    initial_weights= noa * [1. / noa,]       #equal weights for example
+    initial_rets= sample[0:j]    #Grab set window of intial returns
+    initial_portfolio=initial_rets*initial_weights     #construct intial portfolio window
+       
+            #Calculate mean_variance for given sample and market portfolio
+    Rebalanced_portfolio= intial_portfolio
+    for i in range(1,len(sample)-j):        #iterate 
+        grab_next_month= unweighted_intial_port[i+j-1:i+j]
+        weighted_next_month= Mod_Mean_Var(portfolio=Rebalanced_port, full_trailing=Rebalanced_port)[1] * grab_next_month
+        Rebalanced_port= Rebalanced_p=ort.append(weighted_next_month)  
+    
+    
+    return  Rebalanced_port   
+   #---------------------------------------------------------------------------
+   #---------------------------------------------------------------------------
+   #---------------------------------------------------------------------------
+    
+    
 #Journal Article: Kinlaw and Turkington - 2012 - Correlation Surprise
 def Correlation_Surprise(Returns):
     
@@ -732,14 +766,14 @@ def Absorption_Ratio(Returns, halflife):
 
         #stage1: GATHER DAILY TRAIL LENGTH
     
-    time_series_of_500days=len(Returns)-500                              #collect data that is outside of initial 500day window
+    time_series_of_500days=len(Returns)-int(500/12)                              #collect data that is outside of initial 500day window
     
         #stage2: GENERATE ABSORPTION RATIO DATA
     plotting_data=[]                                                           #create list titled plot data
     for i in range(time_series_of_500days):
         
                 #stage1: CALCULATE EXPONENTIAL WEIGHTING
-        window= Returns[i:i+500]                                  #create 500 day trailing window      
+        window= Returns[i:i+int(500/12)]                                  #create 500 day trailing window      
         #centred_data= returns_500day.subtract(returns_500day.mean())       #Center Data
         
         pca = PCA(n_components= int(round(Returns.shape[1]*0.2)), whiten=False).fit(window)
@@ -764,7 +798,7 @@ def Absorption_Ratio(Returns, halflife):
     
          #stage9: Plot Data
     plot_array= np.array(plotting_data)                                        #convert plotting_data into array
-    dates= Returns[500:time_series_of_500days+500].index                  #gather dates index over 500 day window iterations
+    dates= Returns[int(500/12):time_series_of_500days+int(500/12)].index                  #gather dates index over 500 day window iterations
     Absorption_Ratio_daily=pd.DataFrame(plot_array,index=dates,columns=list('R'))#merge dates and Absorption ratio returns
     Absorption_Ratio_daily= pd.ewma(Absorption_Ratio_daily, halflife=halflife)
     #Absorption_Ratio=Absorption_Ratio_daily.resample('M', how=None)#group daily data into monthly data
@@ -829,26 +863,27 @@ def Absorption_Ratio_and_Drawdowns(delta_AR):    #how to measure all drawdowns
     return (delta_AR['R'][prevmaxi], delta_AR['R'][prevmini])
 
 
-def plot_AR(AR, figsize, datesize):
+def plot_AR(AR, figsize, yaxis):
     
     import matplotlib.pyplot as plt
     
     
     plt.figure( figsize=(figsize))    
-    plt.suptitle(['Absorption Ratio Index from', datesize,' Daily Returns'],fontsize=12) 
+    plt.suptitle(['Absorption Ratio Index from',' Daily Returns'],fontsize=12) 
     plt.xticks(rotation=50)
     plt.xlabel('Year')
     plt.ylabel('Index')
     
-    y1, y2 = 0.5, 1
+    y1, y2 = yaxis
     plt.ylim([y1, y2])    
     
     #x1,x2,y1,y2 = plt.axis()
     #plt.axis((x1,x2,0.5,1))
-    AR= AR.resample(datesize)
+    AR= AR
     x=AR.index
     y=AR.values
-    plt.plot(x,y, linewidth=2.5, color='k')
+    #plt.plot(x,y, linewidth=2.5, color='k')
+    plt.bar(x,y, width=0.2,color='w', label='Quiet')
     plt.grid()
     #cannot seem to find out how to colour this?
     
@@ -882,6 +917,72 @@ def plot_AR_ALL(US, UK, JPN, halflife):
     plt.show()
     
     return
+
+#---------------------------------------------------------------------------
+def Probit(Input_Returns):
+    import numpy as np
+    import pandas as pd
+        #Build Probit Dataframe
+    Intial_window_Input=Input_Returns
+    df=pd.DataFrame(index=MahalanobisDist(Returns=Intial_window_Input).index)  #will need to consider pushing this forward 500days due to 500AR window
+    df['MD']=MahalanobisDist(Returns=Intial_window_Input[(500/12):])  
+    Mag_Corr= Correlation_Surprise(Returns=Intial_window_Input[(500/12):])
+    df['Mag_Corr']= Mag_Corr[1]/Mag_Corr[0]
+    
+    """
+    Corr=Mag_Corr[0]
+    Mag=Mag_Corr[1]
+    Corr['Mag']=Mag
+    MG_Rule=Corr['Mag']>Corr['Mag'].quantile(.8)
+    Corr_Rule=Corr['R']>0.01
+    x=Corr[((MG_Rule) & (Corr_Rule))]
+    Turbulence_filter_extension= pd.DataFrame(index=x.index)
+    Turbulence_filter_extension['binary']= np.zeros(len(Turbulence_filter_extension)) 
+    Corr['Binary']=Turbulence_filter_extension
+    Corr= Corr.fillna(1)        #identifies the other days are not Turbulent by labelling PR=0
+    cols=Corr.columns.tolist()
+    cols = cols[-1:] + cols[:-1]
+    Corr=Corr[cols]
+    Corr=Corr.ix[:,0:1]
+    df['Mag_Corr']=Corr
+    """   #Singualr Matrix error
+    
+    df['AR']=Absorption_Ratio(Returns= Intial_window_Input, halflife=int(500/12))  
+    df=df[int(500/12):] # Due to Absorption Ratio requiring 500day window
+    #-----------------------------
+    
+        #Filter Binary Rules
+    MD_Rule=df['MD']>df['MD'].quantile(.8)
+    Mag_Corr_Rule=df['Mag_Corr']>df['Mag_Corr'].quantile(.80)
+    #Mag_Corr_Rule=df['Mag_Corr']==1
+    AR_Rule=df['AR']>df['AR'].quantile(.80)
+    Turbulence_filter=df[((MD_Rule) & (Mag_Corr_Rule)) | ((MD_Rule) & (AR_Rule)) | ((Mag_Corr_Rule) & (AR_Rule))]
+    Turbulence_filter_extension= pd.DataFrame(index=Turbulence_filter.index)
+    Turbulence_filter_extension['binary']= np.zeros(len(Turbulence_filter_extension))   #Identifies that all these days are deemed Turbulent(Systemic) by indicatiing a probability of 1
+    df['Binary']=Turbulence_filter_extension
+    df= df.fillna(1)        #identifies the other days are not Turbulent by labelling PR=0
+    cols=df.columns.tolist()
+    cols = cols[-1:] + cols[:-1]
+    df=df[cols]                 #Moves Binary results into first column of dataframe
+    #-----------------------------
+    
+        #Run Probit
+    endog = df[['Binary']]      # Dependent
+    exog = df[['MD','Mag_Corr','AR']]  #Independent
+  
+    const = pd.Series(np.ones(exog.shape[0]), index=endog.index)
+    const.name = 'Const'
+    exog = pd.DataFrame([const, exog.MD, exog.Mag_Corr, exog.AR]).T
+    # Estimate the model
+    import statsmodels.api as sm
+    mod = sm.Probit(endog, exog)
+    fit = mod.fit(disp=0)
+    params = fit.params
+    
+    return params, df
+#-----------------------------
+
+
 
 
 

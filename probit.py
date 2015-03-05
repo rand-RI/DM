@@ -2,6 +2,7 @@
 http://statsmodels.sourceforge.net/devel/examples/generated/example_discrete.html"""
 
 # how to fit model http://statsmodels.sourceforge.net/devel/gettingstarted.html
+#http://nbviewer.ipython.org/github/bashtage/arch/blob/master/examples/bootstrap_examples.ipynb
 
 import pandas as pd
 import statsmodels.api as sm
@@ -21,3 +22,6 @@ print probit_res.params
 probit_margeff = probit_res.get_margeff()
 print probit_margeff.summary()
 
+
+
+df = sm.datasets.get_rdataset("Guerry", "HistData").data

@@ -63,7 +63,14 @@ symbols = ['^GSPC']                                                             
 Start_Date='1/1/1980'                                    #Date Range for required returns. In the format of MM/DD/YY 
 Historical_Pricess = pdio.get_data_yahoo(symbols,start= Start_Date)#Download Historical Prices using symbols as a list of yahoo tickers over the defined start date-end date
 Historical_Pricess_closed=Historical_Pricess['Adj Close'].dropna()  
-Historical_Pricess_closed.save('S&P_500')    
+Historical_Pricess_closed.save('S&P_500')  
+  
+symbols = ['^GSPC', '^TYX']                                                             #An example of the type of data that would be required for Figure 5 inputs 
+Start_Date='15/02/1977'                                    #Date Range for required returns. In the format of MM/DD/YY 
+Historical_Pricess = pdio.get_data_yahoo(symbols,start= Start_Date)#Download Historical Prices using symbols as a list of yahoo tickers over the defined start date-end date
+Historical_Pricess_closed=Historical_Pricess['Adj Close'].dropna()  
+Historical_Pricess_closed.save('Probit_portfolio')  
+
 
         #Correlation Surprise
 #Exhibit 5: US Equities,  European Equities, Currencies 
