@@ -253,42 +253,53 @@ Returns_that_you_will_get=[]    #"" "" ""
 Initial_Theshold=0                  #Let intial theshold equal 0          
 Theshold=Initial_Theshold
 #---------------------------
-for i in range(1,len(Probit_Forecast)):      
-    """ What you will get"""
+
+for a in range(100):
+    opt_returns=[]
+    for i in range(0,len(Probit_Forecast)-1):      
+        """ What you will get"""
+        g=a #look back window 
+        Predicted_Probit_decider=Probit_Forecast['Probit'][i+g:i+1+g][0]                    #Grabs First Row
+        Theshold=Theshold
+        if (Predicted_Probit_decider>Theshold):   
+            Switch_Portfolio=Switch_Portfolio.append(Rebalanced_portfolio[i+g:1+i+g].ix[:,1:2]) #Fixed Income
+        else:
+            Switch_Portfolio=Switch_Portfolio.append(Rebalanced_portfolio[i+g:1+i+g].ix[:,0:1]) 
+        Switch_Portfolio=Switch_Portfolio.fillna(0)
+        Returns_that_you_will_get.append(Switch_Portfolio.sum().sum())
+       #-----------------------------------------
+        """What you should have chosen"""
+        Returns=[]
+        for k in range(1,100):                  #Set the looking back range
+            New_Theshold= Probit_Forecast[i:i+1+g].quantile(k*0.01)[0]
+            
+            Test_DF=Rebalanced_portfolio[i:i+1+g]
+            Test_DF['Probit']=Probit_Forecast[i:i+1+g]
+            Test_DF=Test_DF.dropna()
+            x=Test_DF[Test_DF['Probit']>New_Theshold]
+            y=Test_DF[Test_DF['Probit']<=New_Theshold]
+            x=x['^TYX']
+            y=y['^GSPC']
+            z=pd.DataFrame(index=Test_DF.index)
+            z['^GSPC']=y
+            z['^TYX']=x
+            z=z.fillna(0)
+            total_returns=z.sum().sum()
+            Returns.append(total_returns)
+        maximum= np.max(Returns)
+        max_loc_in_range= Returns.index(maximum)
+        Theshold=max_loc_in_range+1
+        Theshold=Probit_Forecast[i:i+1+g]['Probit'].quantile(Theshold*0.01)
+        Theshold_Values.append(Theshold)
+    Switch_Portfolio_results=Switch_Portfolio.sum().sum()
+    opt_returns.append(Switch_Portfolio_results)
+    maximum_= np.max(opt_returns)
+    max_loc_in_range_= opt_returns.index(maximum_)
+    Theshold=max_loc_in_range_
+    Switch_Portfolio=pd.DataFrame() 
     
-    Predicted_Probit_decider=Probit_Forecast['Probit'][i:i+1][0]                    #Grabs First Row
-    Theshold=Theshold
-    if (Predicted_Probit_decider>Theshold):   
-        Switch_Portfolio=Switch_Portfolio.append(Rebalanced_portfolio[1+i:2+i].ix[:,1:2]) #Fixed Income
-    else:
-        Switch_Portfolio=Switch_Portfolio.append(Rebalanced_portfolio[1+i:2+i].ix[:,0:1]) 
-    Switch_Portfolio=Switch_Portfolio.fillna(0)
-    Returns_that_you_will_get.append(Switch_Portfolio.sum().sum())
-   #-----------------------------------------
-    """What you should have chosen"""
-    Returns=[]
-    for k in range(1,100):                  #Set the looking back range
-        New_Theshold= Probit_Forecast[i:i+1].quantile(k*0.01)[0]
+    
         
-        Test_DF=Rebalanced_portfolio[i+1:i+2]
-        Test_DF['Probit']=Probit_Forecast[i:i+1]
-        Test_DF=Test_DF.dropna()
-        x=Test_DF[Test_DF['Probit']>New_Theshold]
-        y=Test_DF[Test_DF['Probit']<=New_Theshold]
-        x=x['^TYX']
-        y=y['^GSPC']
-        z=pd.DataFrame(index=Test_DF.index)
-        z['^GSPC']=y
-        z['^TYX']=x
-        z=z.fillna(0)
-        total_returns=z.sum().sum()
-        Returns.append(total_returns)
-    maximum= np.max(Returns)
-    max_loc_in_range= Returns.index(maximum)
-    Theshold=max_loc_in_range+1
-    Theshold=Probit_Forecast[i:i+1]['Probit'].quantile(Theshold*0.01)
-    Theshold_Values.append(Theshold)
-    
         
   
     
