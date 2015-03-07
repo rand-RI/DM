@@ -256,7 +256,7 @@ Theshold=Initial_Theshold
 
 for a in range(100):
     opt_returns=[]
-    for i in range(0,len(Probit_Forecast)-1):      
+    for i in range(0,len(Probit_Forecast)-1):   #need to make sure it finishes at end and starts at orgin    
         """ What you will get"""
         g=a #look back window 
         Predicted_Probit_decider=Probit_Forecast['Probit'][i+g:i+1+g][0]                    #Grabs First Row
@@ -291,6 +291,7 @@ for a in range(100):
         Theshold=max_loc_in_range+1
         Theshold=Probit_Forecast[i:i+1+g]['Probit'].quantile(Theshold*0.01)
         Theshold_Values.append(Theshold)
+        print ["Iteration Completed",i]
     Switch_Portfolio_results=Switch_Portfolio.sum().sum()
     opt_returns.append(Switch_Portfolio_results)
     maximum_= np.max(opt_returns)
@@ -324,7 +325,7 @@ for a in range(100):
     Theshold_Values.append(Theshold)
     #----------------------------------
     """
-    print ["Iteration Completed",i] #This allows you to see what the portfolio is doing
+     #This allows you to see what the portfolio is doing
 
     
 #---------------------------------------------------------
