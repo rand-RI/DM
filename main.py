@@ -194,13 +194,14 @@ as the Input_returns
 # ----------------------------------
    #  1: INPUTS
 
-Input_returns=(pd.load('FF49_1926').resample('M'))[607:]    #Start 1970-01-31
+Input_returns=(pd.load('FF49_1926').resample('M'))[607+155:]    #Start 1970-01-31
+VIX_returns= pd.load('^VIX').resample('M')
                           
-Balanced_port= srm.logreturns(Returns=pd.load('Probit_portfolio')).resample('M')[:456]
+Balanced_port= srm.logreturns(Returns=pd.load('Probit_portfolio')).resample('M')[155:456]
     #List of Equities and Fixed Income Switch Stradegy Portfolio
 #**** Note the Balanced_port in this case has an index len one month ahead due to monthly returns not yet out but daily returns of the month so far have been calculated(This allows the index to purchase returns from the day after the predicted monthly returns)
 #Set Parameters 
-Window_Range=200                                   #                                                           
+Window_Range=120                             #                                                           
 Forecast_Range=len(Input_returns)-Window_Range                 #Months
 
 
@@ -213,12 +214,12 @@ Forecast_Range=len(Input_returns)-Window_Range                 #Months
 #---------------------------------------------------------
 #--------------------------
     #  2: RUN PROBIT
-
 Probit_Forecast=pd.DataFrame()
 for i in range(Forecast_Range):
     window= int(Window_Range)                                                       #Create Intial window size(eg First 2500 Days)
-    Input= Input_returns[0:window+i]                                      #Set Input
-    Probit_function=srm.Probit(Input_Returns=Input)                            #Generate Probit Parameters 
+    Input= Input_returns[0:window+i]
+    VIX= VIX_returns[0:window+i]                                   #Set Input
+    Probit_function=srm.Probit(Input_Returns=Input, vix=VIX)                            #Generate Probit Parameters 
     
     Intercept= Probit_function[0][0]                                                       
     First_coeff= Probit_function[0][1]              
@@ -251,14 +252,14 @@ Switch_Portfolio=pd.DataFrame()                     #Define Switch_Portfolio as 
 Theshold_Values=[]              #Set empty Theshold Value to append values form loop below
 Returns_that_you_will_get=[]    #"" "" ""
 Initial_Theshold=0                  #Let intial theshold equal 0          
-Theshold=Initial_Theshold
 #---------------------------
-
-for a in range(100):
-    opt_returns=[]
-    for i in range(0,len(Probit_Forecast)-1):   #need to make sure it finishes at end and starts at orgin    
+# Optimisations 
+opt_returns=[]
+for a in range(30):
+    g=a   #look back window
+    Theshold=Initial_Theshold
+    for i in range(0,len(Probit_Forecast)-1-g):   #need to make sure it finishes at end and starts at orgin    
         """ What you will get"""
-        g=a #look back window 
         Predicted_Probit_decider=Probit_Forecast['Probit'][i+g:i+1+g][0]                    #Grabs First Row
         Theshold=Theshold
         if (Predicted_Probit_decider>Theshold):   
@@ -292,40 +293,62 @@ for a in range(100):
         Theshold=Probit_Forecast[i:i+1+g]['Probit'].quantile(Theshold*0.01)
         Theshold_Values.append(Theshold)
         print ["Iteration Completed",i]
-    Switch_Portfolio_results=Switch_Portfolio.sum().sum()
+    Switch_Portfolio_results=Switch_Portfolio.sum().sum() #grabs theshold optimised portfolio
     opt_returns.append(Switch_Portfolio_results)
-    maximum_= np.max(opt_returns)
-    max_loc_in_range_= opt_returns.index(maximum_)
-    Theshold=max_loc_in_range_
     Switch_Portfolio=pd.DataFrame() 
-    
-    
-        
-        
-  
-    
-    """
-    #What you should get next time
+    print ["Iteration Completed",a]
+#Get op window
+maximum_win= np.max(opt_returns)
+max_loc_in_range_= opt_returns.index(maximum_win)
+Theshold_window=max_loc_in_range_
+#--------------------------------------------------------
+#Actual
+Probit_Forecast=Probit_Forecast #Set Probit Forecasts for the previous input of US monthly returns
+Rebalanced_portfolio= Balanced_port[Window_Range:]      #Set the Portfolio of Equities and Bonds at same starting date as Probit
+Switch_Portfolio=pd.DataFrame()                     #Define Switch_Portfolio as empty dataframe to append values later in loops below
+Theshold_Values=[]              #Set empty Theshold Value to append values form loop below
+Returns_that_you_will_get=[]    #"" "" ""
+Initial_Theshold=0   
+Theshold=Initial_Theshold
+g=Theshold_window 
+for i in range(0,len(Probit_Forecast)-1-g):   #need to make sure it finishes at end and starts at orgin    
+    """ What you will get"""
+    Predicted_Probit_decider=Probit_Forecast['Probit'][i+g:i+1+g][0]                    #Grabs First Row
+    Theshold=Theshold
+    if (Predicted_Probit_decider>Theshold):   
+        Switch_Portfolio=Switch_Portfolio.append(Rebalanced_portfolio[i+g:1+i+g].ix[:,1:2]) #Fixed Income
+    else:
+        Switch_Portfolio=Switch_Portfolio.append(Rebalanced_portfolio[i+g:1+i+g].ix[:,0:1]) 
+    Switch_Portfolio=Switch_Portfolio.fillna(0)
+    Returns_that_you_will_get.append(Switch_Portfolio.sum().sum())
+       #-----------------------------------------
+    """What you should have chosen"""
     Returns=[]
-    Switch_Portfolio_test=pd.DataFrame()
-    for k in range(1,100):
-        for j in range(i+1):
-            New_Theshold= Probit_Forecast[0:i+1].quantile(k*0.01)[0]
-            if (Predicted_Probit_decider>New_Theshold):   
-                Switch_Portfolio_test=Switch_Portfolio_test.append(Rebalanced_portfolio[1+j:2+j].ix[:,1:2]) #Fixed Income
-            else:
-                Switch_Portfolio_test=Switch_Portfolio_test.append(Rebalanced_portfolio[1+j:2+j].ix[:,0:1]) 
-        Switch_Portfolio_test=Switch_Portfolio_test.fillna(0)
-        total_returns=Switch_Portfolio_test.sum().sum()
+    for k in range(1,100):                  #Set the looking back range
+        New_Theshold= Probit_Forecast[i:i+1+g].quantile(k*0.01)[0]
+           
+        Test_DF=Rebalanced_portfolio[i:i+1+g]
+        Test_DF['Probit']=Probit_Forecast[i:i+1+g]
+        Test_DF=Test_DF.dropna()
+        x=Test_DF[Test_DF['Probit']>New_Theshold]
+        y=Test_DF[Test_DF['Probit']<=New_Theshold]
+        x=x['^TYX']
+        y=y['^GSPC']
+        z=pd.DataFrame(index=Test_DF.index)
+        z['^GSPC']=y
+        z['^TYX']=x
+        z=z.fillna(0)
+        total_returns=z.sum().sum()
         Returns.append(total_returns)
     maximum= np.max(Returns)
     max_loc_in_range= Returns.index(maximum)
     Theshold=max_loc_in_range+1
-    Theshold=Probit_Forecast[0:i+1]['Probit'].quantile(Theshold*0.01)
+    Theshold=Probit_Forecast[i:i+1+g]['Probit'].quantile(Theshold*0.01)
     Theshold_Values.append(Theshold)
-    #----------------------------------
-    """
-     #This allows you to see what the portfolio is doing
+    print ["Iteration Completed",i]
+    #This allows you to see what the portfolio is doing    
+    
+    
 
     
 #---------------------------------------------------------

@@ -919,7 +919,7 @@ def plot_AR_ALL(US, UK, JPN, halflife):
     return
 
 #---------------------------------------------------------------------------
-def Probit(Input_Returns):
+def Probit(Input_Returns, vix):
     import numpy as np
     import pandas as pd
         #Build Probit Dataframe
@@ -947,7 +947,8 @@ def Probit(Input_Returns):
     df['Mag_Corr']=Corr
     """   #Singualr Matrix error
     
-    df['AR']=Absorption_Ratio(Returns= Intial_window_Input, halflife=int(500/12))  
+    df['AR']=Absorption_Ratio(Returns= Intial_window_Input, halflife=int(500/12))
+    df['VIX']=vix.values
     df=df[int(500/12):] # Due to Absorption Ratio requiring 500day window
     #-----------------------------
     
@@ -956,7 +957,8 @@ def Probit(Input_Returns):
     Mag_Corr_Rule=df['Mag_Corr']>df['Mag_Corr'].quantile(.80)
     #Mag_Corr_Rule=df['Mag_Corr']==1
     AR_Rule=df['AR']>df['AR'].quantile(.80)
-    Turbulence_filter=df[((MD_Rule) & (Mag_Corr_Rule)) | ((MD_Rule) & (AR_Rule)) | ((Mag_Corr_Rule) & (AR_Rule))]
+    VIX_Rule=df['VIX']>df['VIX'].quantile(.70)
+    Turbulence_filter=df[((MD_Rule) & (Mag_Corr_Rule) & (AR_Rule)) | ((MD_Rule) & (AR_Rule) & (VIX_Rule)) | ((Mag_Corr_Rule) & (AR_Rule) & (VIX_Rule))]
     Turbulence_filter_extension= pd.DataFrame(index=Turbulence_filter.index)
     Turbulence_filter_extension['binary']= np.zeros(len(Turbulence_filter_extension))   #Identifies that all these days are deemed Turbulent(Systemic) by indicatiing a probability of 1
     df['Binary']=Turbulence_filter_extension
@@ -968,11 +970,11 @@ def Probit(Input_Returns):
     
         #Run Probit
     endog = df[['Binary']]      # Dependent
-    exog = df[['MD','Mag_Corr','AR']]  #Independent
+    exog = df[['MD','Mag_Corr','AR', 'VIX']]  #Independent
   
     const = pd.Series(np.ones(exog.shape[0]), index=endog.index)
     const.name = 'Const'
-    exog = pd.DataFrame([const, exog.MD, exog.Mag_Corr, exog.AR]).T
+    exog = pd.DataFrame([const, exog.MD, exog.Mag_Corr, exog.AR, exog.VIX]).T
     # Estimate the model
     import statsmodels.api as sm
     mod = sm.Probit(endog, exog)
