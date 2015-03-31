@@ -201,7 +201,7 @@ Balanced_port= srm.logreturns(Returns=pd.load('Probit_portfolio')).resample('M')
     #List of Equities and Fixed Income Switch Stradegy Portfolio
 #**** Note the Balanced_port in this case has an index len one month ahead due to monthly returns not yet out but daily returns of the month so far have been calculated(This allows the index to purchase returns from the day after the predicted monthly returns)
 #Set Parameters 
-Window_Range=120                             #                                                           
+Window_Range=150                            #                                                           
 Forecast_Range=len(Input_returns)-Window_Range                 #Months
 
 

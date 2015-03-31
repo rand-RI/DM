@@ -957,8 +957,8 @@ def Probit(Input_Returns, vix):
     Mag_Corr_Rule=df['Mag_Corr']>df['Mag_Corr'].quantile(.80)
     #Mag_Corr_Rule=df['Mag_Corr']==1
     AR_Rule=df['AR']>df['AR'].quantile(.80)
-    VIX_Rule=df['VIX']>df['VIX'].quantile(.70)
-    Turbulence_filter=df[((MD_Rule) & (Mag_Corr_Rule) & (AR_Rule)) | ((MD_Rule) & (AR_Rule) & (VIX_Rule)) | ((Mag_Corr_Rule) & (AR_Rule) & (VIX_Rule))]
+    VIX_Rule=df['VIX']>df['VIX'].quantile(.8)
+    Turbulence_filter=df[((MD_Rule) & (Mag_Corr_Rule)) | ((MD_Rule) & (AR_Rule)) | ((Mag_Corr_Rule) & (AR_Rule)) | ((MD_Rule) & (VIX_Rule)) | ((Mag_Corr_Rule) & (VIX_Rule)) | ((AR_Rule) & (VIX_Rule))]
     Turbulence_filter_extension= pd.DataFrame(index=Turbulence_filter.index)
     Turbulence_filter_extension['binary']= np.zeros(len(Turbulence_filter_extension))   #Identifies that all these days are deemed Turbulent(Systemic) by indicatiing a probability of 1
     df['Binary']=Turbulence_filter_extension
