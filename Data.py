@@ -125,3 +125,14 @@ CANsectors_timeseries_dataframe.save('CANsectors')
 
 
 
+
+####################################################################
+"""Probit"""
+USARECM=pd.read_csv('USARECM.csv', index_col=0)
+USARECM_timeseries_dataframe=srm.CreateDataFrameWithTimeStampIndex(DataFrame=USARECM)
+USARECM_timeseries_dataframe.save('USARECM')
+
+
+
+
+
