@@ -377,7 +377,7 @@ def Probit(Input_Returns, vix,recession_data):
     Mag_Corr= Correlation_Surprise(Returns=Intial_window_Input[(41):])
     df['Mag_Corr']= Mag_Corr[1]/Mag_Corr[0]
     df['AR']=Absorption_Ratio(Returns= Intial_window_Input, halflife=int(500/12))
-    #df['VIX']=vix.values
+    df['VIX']=vix.values
     df=df[int(41):] # Due to Absorption Ratio requiring 500day window
     df['Binary']=recession_data
                 #A value of one is a recession period and a value of zero is an expandsion period
@@ -385,13 +385,11 @@ def Probit(Input_Returns, vix,recession_data):
     
     #Run Probit
     endog = df[['Binary']]      # Dependent
-    exog = df[['MD','Mag_Corr','AR']]
-               #'VIX']]  #Independent
+    exog = df[['MD','Mag_Corr','AR', 'VIX']]  #Independent
   
     const = pd.Series(np.ones(exog.shape[0]), index=endog.index)
     const.name = 'Const'
-    exog = pd.DataFrame([const, exog.MD, exog.Mag_Corr, exog.AR]).T
-                         #exog.VIX]).T
+    exog = pd.DataFrame([const, exog.MD, exog.Mag_Corr, exog.AR, exog.VIX]).T
     # Estimate the model
     import statsmodels.api as sm
     mod = sm.Probit(endog, exog)

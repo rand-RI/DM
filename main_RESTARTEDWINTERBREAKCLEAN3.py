@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 """STAGE 2: 
 IMPORT DATA"""
 #--------------------------
-
+"""
 Start='19770228'
 Start_Recession_Values='19770201'
 End='20140630' #20140630 latest St Louis Recession data date
@@ -25,11 +25,11 @@ FmmaFrench49_from1926=(pd.load('FF49_1926').resample('M',how='sum')).loc[Start:E
 Recession_Values= pd.load('USARECM')     #1949-10-01
 Balanced_port= srm.logreturns(Returns=pd.load('Probit_portfolio')).resample('M',how='sum').loc[Start:End]
 Recession_Values= Recession_Values[Start_Recession_Values:]  
-
-
 """
-Start='19900131'
-Start_Recession_Values='19900101'
+
+
+Start='19930131'
+Start_Recession_Values='19930101'
 End='20140630' #20140630 latest St Louis Recession data date
 window_range= 60  #months
 
@@ -38,7 +38,7 @@ Recession_Values= pd.load('USARECM')
 VIX_returns= pd.load('^VIX').resample('M').loc[Start:End] #only goes back to 1990     
 Balanced_port= srm.logreturns(Returns=pd.load('Probit_portfolio')).resample('M',how='sum').loc[Start:End]
 Recession_Values= Recession_Values[Start_Recession_Values:] 
-""" 
+
 #-------------------------
 #----------------------------------------------------------------------------------------------------------------------------------
 """STAGE 3: 
@@ -108,13 +108,12 @@ for i in range(Forecast_Range):
     First_coeff= Probit_function[0][1]              
     Second_coeff= Probit_function[0][2]
     Third_coeff= Probit_function[0][3]
-    #Fourth_coeff= Probit_function[0][4]
+    Fourth_coeff= Probit_function[0][4]
     Input_first_variable=Probit_function[1]['MD'].tail()[4]
     Input_second_varibale=Probit_function[1]['Mag_Corr'].tail()[4]
     Input_third_varibale=Probit_function[1]['AR'].tail()[4]
-    #Input_fourth_varibale=Probit_function[1]['VIX'].tail()[4]
-    Function= Intercept+ First_coeff*Input_first_variable + Second_coeff*Input_second_varibale + Third_coeff*Input_third_varibale 
-    #+Fourth_coeff*Input_fourth_varibale 
+    Input_fourth_varibale=Probit_function[1]['VIX'].tail()[4]
+    Function= Intercept+ First_coeff*Input_first_variable + Second_coeff*Input_second_varibale + Third_coeff*Input_third_varibale +Fourth_coeff*Input_fourth_varibale 
     #Create Probit Function and generate Forecast Value
     
     df=pd.DataFrame(index=(Input_returns[0:window+i+1].tail()[4:].index)) #Appending month ahead at the moment    
