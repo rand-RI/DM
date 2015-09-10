@@ -95,10 +95,9 @@ def HistoricalTurbulenceIndexGraph( Mah_Days,  width, figsize, datesize):
     plt.xticks(rotation=50)                                                     #rotate x axis labels 50 degrees
     plt.xlabel('Year')                                                          #label x axis Year
     plt.ylabel('Index')                                                         #label y axis Index
-    plt.suptitle(['Historical Turbulence Index Calcualted from', datesize, 'Returns'],fontsize=12)   
     plt.bar(Monthly_Mah_Returns.index,Monthly_Mah_Returns.values, width,color='w', label='Quiet')#graph bar chart of Mahalanobis Distance
     plt.bar(Monthly_Mah_Turbulent_Returns.index,Monthly_Mah_Turbulent_Returns.values, width,color='k',alpha=0.8, label='Turbulent')
-    plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)      
+    plt.legend(bbox_to_anchor=(1.05, 1), loc=1, borderaxespad=0.)      
     plt.show()
    
     #---------------------------------------------------------------------------    
@@ -177,15 +176,14 @@ def Corr_plot( Corr_sur, Mag_sur,  width, figsize, datesize):
     fig.add_subplot(211)
     plt.xlabel('Year')                                                          #label x axis Year
     plt.ylabel('Index')                                                         #label y axis Index
-    plt.suptitle(['Correlation Surprise and Magnitude Surprise', datesize, 'Returns'],fontsize=12)   
     plt.bar(Corr_sur.index,Corr_sur.values,color='w', width=width ,label= 'Correlation Surprise')
-    plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.) 
+    plt.legend(bbox_to_anchor=(1.05, 1), loc=1, borderaxespad=0.) 
     
     fig.add_subplot(212)
     plt.xlabel('Year')                                                          #label x axis Year
     plt.ylabel('Index')                                                         #label y axis Index
     plt.bar(Mag_sur.index,Mag_sur.values,color='b', width=width ,label= 'Magnitude Surprise')
-    plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.) 
+    plt.legend(bbox_to_anchor=(1.05, 1), loc=1, borderaxespad=0.) 
     
 
     plt.show()
@@ -211,14 +209,14 @@ def Absorption_Ratio(Returns, halflife):
 
         #stage1: GATHER DAILY TRAIL LENGTH
     
-    time_series_of_500days=len(Returns)-int(500/12)                              #collect data that is outside of initial 500day window
+    time_series_of_500days=len(Returns)-int(500/30)                              #collect data that is outside of initial 500day window
     
         #stage2: GENERATE ABSORPTION RATIO DATA
     plotting_data=[]                                                           #create list titled plot data
     for i in range(time_series_of_500days):
         
                 #stage1: CALCULATE EXPONENTIAL WEIGHTING
-        window= Returns[i:i+int(500/12)]                                  #create 500 day trailing window      
+        window= Returns[i:i+int(500/30)]                                  #create 500 day trailing window      
         #centred_data= returns_500day.subtract(returns_500day.mean())       #Center Data
         
         pca = PCA(n_components= int(round(Returns.shape[1]*0.2)), whiten=False).fit(window)
@@ -243,7 +241,7 @@ def Absorption_Ratio(Returns, halflife):
     
          #stage9: Plot Data
     plot_array= np.array(plotting_data)                                        #convert plotting_data into array
-    dates= Returns[int(500/12):time_series_of_500days+int(500/12)].index                  #gather dates index over 500 day window iterations
+    dates= Returns[int(500/30):time_series_of_500days+int(500/30)].index                  #gather dates index over 500 day window iterations
     Absorption_Ratio_daily=pd.DataFrame(plot_array,index=dates,columns=list('R'))#merge dates and Absorption ratio returns
     Absorption_Ratio_daily= pd.ewma(Absorption_Ratio_daily, halflife=halflife)
     #Absorption_Ratio=Absorption_Ratio_daily.resample('M', how=None)#group daily data into monthly data
@@ -272,7 +270,7 @@ def Absorption_Ratio_VS_MSCI_Graph(MSCI, AR_returns):
     plt.axis((x1,x2,0,1.2))
     ax2.plot(AR_returns.index,AR_returns.values, 'g')
     ax2.set_ylabel('Absorption Ratio Index', color='g')
-
+    
     plt.show()
     fig.savefig('Absorption Ratio_vs_US_Stock_Prices.png')
     
@@ -314,7 +312,6 @@ def plot_AR(AR, figsize, yaxis):
     
     
     plt.figure( figsize=(figsize))    
-    plt.suptitle(['Absorption Ratio Index from',' Daily Returns'],fontsize=12) 
     plt.xticks(rotation=50)
     plt.xlabel('Year')
     plt.ylabel('Index')
@@ -332,7 +329,7 @@ def plot_AR(AR, figsize, yaxis):
     plt.grid()
     #cannot seem to find out how to colour this?
     
-
+    
     plt.show()
 
     return 
@@ -373,12 +370,12 @@ def Probit(Input_Returns, vix,recession_data):
             #Build Probit Dataframe
     Intial_window_Input=Input_Returns
     df=pd.DataFrame(index=MahalanobisDist(Returns=Intial_window_Input).index)  #will need to consider pushing this forward 500days due to 500AR window
-    df['MD']=MahalanobisDist(Returns=Intial_window_Input[(41):])  
-    Mag_Corr= Correlation_Surprise(Returns=Intial_window_Input[(41):])
+    df['MD']=MahalanobisDist(Returns=Intial_window_Input[(17):])  
+    Mag_Corr= Correlation_Surprise(Returns=Intial_window_Input[(17):])
     df['Mag_Corr']= Mag_Corr[1]/Mag_Corr[0]
-    df['AR']=Absorption_Ratio(Returns= Intial_window_Input, halflife=int(500/12))
+    df['AR']=Absorption_Ratio(Returns= Intial_window_Input, halflife=int(8.5))
     df['VIX']=vix.values
-    df=df[int(41):] # Due to Absorption Ratio requiring 500day window
+    df=df[int(17):] # Due to Absorption Ratio requiring 500day window
     df['Binary']=recession_data
                 #A value of one is a recession period and a value of zero is an expandsion period
     #-----------------------------

@@ -9,16 +9,16 @@ IMPORT LIBRARY"""
 #-------------------------
 import pandas as pd
 import systemicRiskMeasures1 as srm   
-import matplotlib.pyplot as plt    
+import matplotlib.pyplot as plt
                                       #Import Systemic Risk Measures library
 #----------------------------------------------------------------------------------------------------------------------------------
 """STAGE 2: 
 IMPORT DATA"""
 #--------------------------
 """
-Start='19770228'
-Start_Recession_Values='19770201'
-End='20140630' #20140630 latest St Louis Recession data date
+Start='19950228'
+Start_Recession_Values='19950201'
+End='20131231' #20140630 latest St Louis Recession data date
 window_range= 120 #months
 
 FmmaFrench49_from1926=(pd.load('FF49_1926').resample('M',how='sum')).loc[Start:End]   #1926
@@ -28,9 +28,9 @@ Recession_Values= Recession_Values[Start_Recession_Values:]
 """
 
 
-Start='19930131'
-Start_Recession_Values='19930101'
-End='20140630' #20140630 latest St Louis Recession data date
+Start='19940131'
+Start_Recession_Values='19940101'
+End='20140131' #20140630 latest St Louis Recession data date
 window_range= 60  #months
 
 FmmaFrench49_from1926=(pd.load('FF49_1926').resample('M',how='sum')).loc[Start:End]
@@ -38,6 +38,14 @@ Recession_Values= pd.load('USARECM')
 VIX_returns= pd.load('^VIX').resample('M').loc[Start:End] #only goes back to 1990     
 Balanced_port= srm.logreturns(Returns=pd.load('Probit_portfolio')).resample('M',how='sum').loc[Start:End]
 Recession_Values= Recession_Values[Start_Recession_Values:] 
+SP500_TB= pd.load('Probit_portfolio').resample('M').loc[Start:End]
+
+
+"excel writer"
+#writer = pd.ExcelWriter('output.xlsx')
+#FmmaFrench49_from1926.to_excel(writer,'Sheet1')
+#writer.save()
+
 
 #-------------------------
 #----------------------------------------------------------------------------------------------------------------------------------
@@ -52,7 +60,7 @@ Inputs=Input[window_range:]
         #Input
 MD_input=Inputs         #Change this value for data required
         #Run
-SRM_mahalanobis= srm.MahalanobisDist(Returns=MD_input)[41:]   
+SRM_mahalanobis= srm.MahalanobisDist(Returns=MD_input)[17:]   
 SRM_mahalanobis_turbulent_nonturbulent_days= srm.MahalanobisDist_Turbulent_Returns(MD_returns= SRM_mahalanobis, Returns=MD_input)
                     #drop inputs
 Inputs=Inputs.drop('MD',1)
@@ -66,14 +74,17 @@ Corr_Input= Inputs
         #Run
 SRM_Correlation_Surprise=srm.Correlation_Surprise(Returns=Corr_Input)  #need to reshift by 41 months
         #Graph
-srm.Corr_plot(Corr_sur=SRM_Correlation_Surprise[0][41:], Mag_sur=SRM_Correlation_Surprise[1][41:],  width=25, figsize=(10,4.5), datesize='M')
+srm.Corr_plot(Corr_sur=SRM_Correlation_Surprise[0][17:], Mag_sur=SRM_Correlation_Surprise[1][17:],  width=25, figsize=(10,4.5), datesize='M')
 #-------------------------
 """Absorption Ratio"""
         #Input
 AR_input= Inputs
-SRM_absorptionratio= srm.Absorption_Ratio(Returns= AR_input, halflife=int(500/12))                        #define Absorption Ratio
+SRM_absorptionratio= srm.Absorption_Ratio(Returns= AR_input, halflife=int(8.5))                        #define Absorption Ratio
     #Graphs
-srm.plot_AR(AR=SRM_absorptionratio, figsize=(10,2.5),yaxis=[0.75,0.9])
+srm.plot_AR(AR=SRM_absorptionratio, figsize=(10,2.5),yaxis=[0.84,0.92])
+
+
+
 #-------------------------
 #----------------------------------------------------------------------------------------------------------------------------------
 """Stage5: 
@@ -89,7 +100,7 @@ Input_returns=Input    #Start 1990-01-31
 VIX_returns= VIX_returns         
 Balanced_port= Balanced_port
 Recession_Values= Recession_Values  
-Window_Range= 41+window_range       #10 year window   #Must be greater than 41 as Absorption Ratio requires 500day rolling window. Therefore the Window size is Window-41                                                           
+Window_Range= 17+window_range       #10 year window   #Must be greater than 41 as Absorption Ratio requires 500day rolling window. Therefore the Window size is Window-41                                                           
 Forecast_Range=len(Input_returns)-Window_Range +1               #Months
 #---------------------------------------------------------
 #--------------------------
@@ -151,13 +162,39 @@ for i in range(0,len(Probit_Forecast)-1):   #need to make sure it finishes at en
        #-----------------------------------------
 #---------------------------------------------------------
 #---------------------------------------------------------
+
+
+###Purchase at Price 
+Rebalanced_portfolio1= SP500_TB[Window_Range:]     
+Switch_Portfolio1=pd.DataFrame()                  
+Theshold_Values1=[]              
+Returns_that_you_will_get1=[]    
+Initial_Theshold1=0                          
+Theshold1=Initial_Theshold1
+for i in range(len(Probit_Forecast)-1):   
+    """ What you will get"""
+    Predicted_Probit_decider1=Probit_Forecast['Probit'][i:i+1][0]                    #Grabs First Row
+    Theshold1=Theshold1
+    if (Predicted_Probit_decider1>Theshold1):   
+        Switch_Portfolio1=Switch_Portfolio1.append(Rebalanced_portfolio1[i:1+i].ix[:,1:2]) #Fixed Income
+    else:
+        Switch_Portfolio1=Switch_Portfolio1.append(Rebalanced_portfolio1[i:1+i].ix[:,0:1])  #Equity 
+    Switch_Portfolio1=Switch_Portfolio1.fillna(0)
+    Returns_that_you_will_get1.append(Switch_Portfolio1.sum().sum())
+
+
+
+
+
+
+
+
     #  4  RESULTS
 #Probit Graph 
 fig= plt.figure(1, figsize=(10,3))
 plt.xticks(rotation=50)                                                     #rotate x axis labels 50 degrees
 plt.xlabel('Year')                                                          #label x axis Year
 plt.ylabel('Index')                                                         #label y axis Index
-plt.suptitle('Probit Forecast',fontsize=12)   
 plt.bar(Probit_Forecast.index,Probit_Forecast.values, width=0.5,color='w')#graph bar chart of Ma
 plt.grid()
 plt.show()
@@ -181,18 +218,29 @@ for i in range(1,len(SP500)+1):
     Net_return=(SP500[i-1:i]*Initial_Amount)[0]
     Net_return_values_R.append(Net_return)
     Initial_Amount=Net_return
-Net_returns_R=pd.DataFrame(Net_return_values_R,index=SP500.index)
+Net_returns_500=pd.DataFrame(Net_return_values_R,index=SP500.index)
+
+
+Net_returns_R= pd.load('MV')
+Net_returns_M= pd.load('MinV')
+Net_returns_RT= pd.load('MV_T')
+Net_returns_MT= pd.load('MinV_T')
+
 
 fig= plt.figure(1, figsize=(10,3))
 plt.xticks(rotation=50)                                                     #rotate x axis labels 50 degrees
 plt.xlabel('Year')                                                          #label x axis Year
 plt.ylabel('Price')                                                         #label y axis Index
-plt.suptitle('Comparision of Returns',fontsize=12)   
 plt.plot(Net_returns_SP.index,Net_returns_SP.values, label='Switch Strad', linestyle='--')
-plt.plot(Net_returns_R.index,Net_returns_R.values, label='S&P 500')
+#plt.plot(Net_returns_500.index,Net_returns_500.values, label='S&P 500')
+#plt.plot(Net_returns_R.index,Net_returns_R.values, label='MV', linestyle='--')
+#plt.plot(Net_returns_M.index,Net_returns_M.values, label='MinV')
+plt.plot(Net_returns_MT.index,Net_returns_MT.values, label='MinVT')
+plt.plot(Net_returns_RT.index,Net_returns_RT.values, label='MVT', linestyle='--')
 plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.) 
 plt.grid()
 plt.show()
+
 print ['Over Index of', Net_returns_R.index]
 
 
